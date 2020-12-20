@@ -11,7 +11,6 @@
 #define global_variable static
 
 #define Pi32 3.141592653589793238462643383279
-#define BYTESPERPIXEL 4
 
 typedef float real32;
 typedef double real64;
@@ -76,6 +75,10 @@ internal void
 Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer, HDC DeviceContext, 
                            int WindowWidth, int WindowHeight)
 {
+	/* This will slow us down a bit, but it will help eliminate gaps in lines
+	 * that would otherwise appear (because StretchDIBits loses some information) */
+	SetStretchBltMode(DeviceContext, HALFTONE);
+
 	StretchDIBits(DeviceContext,
                   0, 0, WindowWidth, WindowHeight, 		// dest window
                   0, 0, Buffer->Width, Buffer->Height,	// src buffer
@@ -156,7 +159,7 @@ WinMain(HINSTANCE 	Instance,
     
 	WNDCLASS WindowClass = {};
     
-    Win32ResizeDIBSection(&GlobalBackBuffer, 900, 600);
+    Win32ResizeDIBSection(&GlobalBackBuffer, WIDTH, HEIGHT);
     
 	WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     WindowClass.lpfnWndProc = Win32MainWindowCallback; // This is what will be called when there's a message 
@@ -172,8 +175,8 @@ WinMain(HINSTANCE 	Instance,
                                       WS_OVERLAPPEDWINDOW|WS_VISIBLE,
                                       CW_USEDEFAULT,
                                       CW_USEDEFAULT,
-                                      CW_USEDEFAULT,
-                                      CW_USEDEFAULT,
+                                      WIDTH, // used to be CW_USEDEFAULT
+                                      HEIGHT, // used to be CW_USEDEFAULT
                                       0,
                                       0,
                                       Instance,

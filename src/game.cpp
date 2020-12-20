@@ -181,6 +181,6 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer)
 	Point_2D d,e;
 	d.x = 800; d.y=400;
 	e.x = 900; e.y=500;
-	FillRect_2D(Buffer, d,e, RED);
+	FillRect_2D(Buffer, d,e, BLUE);
 	// This is called 'per-frame'
 }
