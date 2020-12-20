@@ -156,7 +156,7 @@ WinMain(HINSTANCE 	Instance,
     
 	WNDCLASS WindowClass = {};
     
-    Win32ResizeDIBSection(&GlobalBackBuffer, 1280, 720);
+    Win32ResizeDIBSection(&GlobalBackBuffer, 900, 600);
     
 	WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     WindowClass.lpfnWndProc = Win32MainWindowCallback; // This is what will be called when there's a message 

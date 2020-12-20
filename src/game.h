@@ -93,6 +93,19 @@ struct game_memory
     void *TransientStorage; // NOTE: REQUIRED to be cleared to zero @ startup
 };
 
+typedef struct Point_2D
+{
+    int x;
+    int y; 
+} Point_2D;
+
+typedef struct Point_3D
+{
+    int x;
+    int y;
+    int z;
+} Point_3D;
+
 internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer);
 
 /*

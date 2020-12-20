@@ -11,24 +11,24 @@ DrawPixel(game_offscreen_buffer *Buffer, int x, int y, uint32_t color)
 
 /* Note: we should improve this by anti-aliasing. */
 internal void
-DrawLine(game_offscreen_buffer *Buffer, int x1, int y1, int x2, int y2, uint32_t color)
+DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
 	int x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;
 	
 	//Bounds Check
-	if(x1 < 0 || x1 >= Buffer->Width || x2 < 0 || x2 >= Buffer->Width ||
-		y1 < 0 || y1 >= Buffer->Width || y2 < 0 || y2 >= Buffer->Width) 
+	if(p1.x < 0 || p1.x >= Buffer->Width || p2.x < 0 || p2.x >= Buffer->Width ||
+		p1.y < 0 || p1.y >= Buffer->Width || p2.y < 0 || p2.y >= Buffer->Width) 
 	{
 		return;
 	}
 	
-	dx = x2-x1;
-	dy = y2-y1;
+	dx = p2.x-p1.x;
+	dy = p2.y-p1.y;
 
 	if(dx == 0){
 		// Handle vertical case
-		uint8_t *Row = (uint8_t *)Buffer->Memory + (y1 * Buffer->Pitch) + x1;
-		for(y=y1; y < y2; ++y)
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch) + p1.x;
+		for(y=p1.y; y < p2.y; ++y)
 		{
 			*(uint32_t *)Row = color;
 			Row += Buffer->Pitch;
@@ -36,8 +36,8 @@ DrawLine(game_offscreen_buffer *Buffer, int x1, int y1, int x2, int y2, uint32_t
 	}
 	else if(dy == 0){
 		// Handle horizontal case
-		uint8_t *Pixel = (uint8_t *)Buffer->Memory + (y1 * Buffer->Pitch) + x1;
-		for(x=x1; x < x2; ++x)
+		uint8_t *Pixel = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch) + p1.x;
+		for(x=p1.x; x < p2.x; ++x)
 		{
 			*(uint32_t *)Pixel = color;
 			Pixel++;
@@ -52,8 +52,8 @@ DrawLine(game_offscreen_buffer *Buffer, int x1, int y1, int x2, int y2, uint32_t
 		// Handle shallow lines 
 		if(abs_dy <= abs_dx)
 		{
-			if(dx>0) {x = x1; y = y1; end_x = x2;}
-			else {x = x2; y = y2; end_x = x1;}
+			if(dx>0) {x = p1.x; y = p1.y; end_x = p2.x;}
+			else {x = p2.x; y = p2.y; end_x = p1.x;}
 
 			if((dx<0 && dy<0) || (dx>0 && dy>0)) yi = 1;
 			else yi = -1;
@@ -75,8 +75,8 @@ DrawLine(game_offscreen_buffer *Buffer, int x1, int y1, int x2, int y2, uint32_t
 		// Handle steep lines
 		else
 		{
-			if(dy>0) {x = x1; y = y1; end_y = y2;}
-			else {x = x2; y = y2; end_y = y1;}
+			if(dy>0) {x = p1.x; y = p1.y; end_y = p2.y;}
+			else {x = p2.x; y = p2.y; end_y = p1.y;}
 
 			if((dx<0 && dy<0) || (dx>0 && dy>0)) xi = 1;
 			else xi = -1;
@@ -96,18 +96,41 @@ DrawLine(game_offscreen_buffer *Buffer, int x1, int y1, int x2, int y2, uint32_t
 			}
 		}
 	}
+}
 
+// Performs the projection of the 3D line into 2D space, and then draws the line as a 2D line
+internal void
+DrawLine_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, uint32_t color)
+{
 }
 
 internal void
-FillRect(game_offscreen_buffer *Buffer, int x1, int y1, int x2, int y2, uint32_t color)
+DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color)
 {
-    uint8_t *Row = (uint8_t *)Buffer->Memory + (y1 * Buffer->Pitch); // get a byte pointer to memory
+	DrawLine_2D(Buffer, p1, p2, color);
+	DrawLine_2D(Buffer, p2, p3, color);
+	DrawLine_2D(Buffer, p3, p1, color);
+}
 
-    for(int  y=y1; y < y2; ++y)
+internal void
+DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, uint32_t color)
+{
+	/*
+	DrawLine_3D();
+	DrawLine_3D();
+	DrawLine_3D();
+	*/
+}
+
+internal void
+FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
+{
+    uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch); // get a byte pointer to memory
+
+    for(int  y=p1.y; y < p2.y; ++y)
     {
-        uint32_t *Pixel = (uint32_t *)Row + x1; // point to the start of the row
-        for(int x=x1; x < x2; ++x)
+        uint32_t *Pixel = (uint32_t *)Row + p1.x; // point to the start of the row
+        for(int x=p1.x; x < p2.x; ++x)
         {
             *Pixel++ = color;
         } // end for loop through columns
@@ -148,22 +171,16 @@ internal void
 GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer)
 {
 	FillColor(Buffer, BLACK);
-	DrawLine(Buffer, 500,0,500,250, WHITE); //vertical line test
-	DrawLine(Buffer, 550,100, 700,100, WHITE); //horizontal line test
 
-	DrawLine(Buffer, 1100,0, 1200,25, WHITE); //xpos, ypos shallow
-	DrawLine(Buffer, 1100,0, 1200,500, WHITE); //xpos, ypos steep
+	Point_2D a, b, c;
+	a.x = 0; a.y = 0;
+	b.x = 400; b.y = 100;
+	c.x = 100; c.y = 400;
+	DrawTriangle_2D(Buffer, a, b, c, WHITE);
 
-	DrawLine(Buffer, 600,500, 700,475, WHITE); //xpos, yneg shallow
-	DrawLine(Buffer, 600,500, 700,300, WHITE); //xpos, yneg steep
-
-	DrawLine(Buffer, 1000, 0,  800,50, WHITE); //xneg, ypos shallow
-	DrawLine(Buffer, 1000, 0,  800,400, WHITE ); //xneg, ypos steep
-
-	DrawLine(Buffer, 1200, 700,  500, 650, WHITE); //xneg, yneg shallow
-	DrawLine(Buffer, 1200, 700,  700, 150, WHITE ); //xneg, yneg steep
-
-	//FillRect(Buffer, 0,0, 1200,500, WHITE);
-
+	Point_2D d,e;
+	d.x = 800; d.y=400;
+	e.x = 900; e.y=500;
+	FillRect_2D(Buffer, d,e, RED);
 	// This is called 'per-frame'
 }
