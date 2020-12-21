@@ -3,10 +3,6 @@
 #ifndef WIN32_GAME_H
 #define WIN32_GAME_H
 
-// This is temporary, TODO: we want to better handle window sizing later
-#define WIDTH 1280
-#define HEIGHT 720
-
 // TODO: We may want to handle this differently later
 #define BYTESPERPIXEL 4
 

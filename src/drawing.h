@@ -12,6 +12,10 @@
 #define WHITE 0xffffff
 #define YELLOW 0xffff00
 
+// This is temporary, TODO: we want to better handle window sizing later
+#define WIDTH 1280
+#define HEIGHT 720
+
 #define ABS(N) ((N<0)?(-N):(N))
 
 typedef struct Point_2D

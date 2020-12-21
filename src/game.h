@@ -84,7 +84,7 @@ struct game_memory
     void *TransientStorage; // NOTE: REQUIRED to be cleared to zero @ startup
 };
 
-internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer);
+internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time);
 
 /*
 NOTE: Services that the platform layer provides to the game

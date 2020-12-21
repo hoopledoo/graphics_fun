@@ -10,6 +10,20 @@ DrawPixel(game_offscreen_buffer *Buffer, real32 x, real32 y, uint32_t color)
 }
 
 internal void
+MatrixVecMult(Point_3D &out_point, Point_3D &in_point, real32 m[4][4])
+{
+	out_point.x = in_point.x * m[0][0] + in_point.y * m[1][0] + in_point.z * m[2][0] + m[3][0];
+	out_point.y = in_point.x * m[0][1] + in_point.y * m[1][1] + in_point.z * m[2][1] + m[3][1];
+	out_point.z = in_point.x * m[0][2] + in_point.y * m[1][2] + in_point.z * m[2][2] + m[3][2];
+	real32 w = in_point.x * m[0][3] + in_point.y * m[1][3] + in_point.z * m[2][3] + m[3][3];
+
+	if (w != 0.0f)
+	{
+		out_point.x /= w; out_point.y /= w; out_point.z /= w;
+	}
+}
+
+internal void
 DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
 	real32 x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;

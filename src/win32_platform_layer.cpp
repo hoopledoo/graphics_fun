@@ -158,6 +158,8 @@ WinMain(HINSTANCE 	Instance,
     QueryPerformanceFrequency(&PerfCountFrequencyResult);
     int64_t PerfCountFrequency = PerfCountFrequencyResult.QuadPart;
     int64_t LastCycleCount = 0;
+    int32_t uSPerFrame = 0;
+
     LARGE_INTEGER LastCounter;
     QueryPerformanceCounter(&LastCounter);
     
@@ -257,7 +259,7 @@ WinMain(HINSTANCE 	Instance,
 	            /* CALL FROM PLATFORM LAYER TO OUR GAME 
 	             * THIS WILL POPULATE THE BACKBUFFER SO
 	             * WE KNOW WHAT TO DRAW */
-	            GameUpdateAndRender(&GameMemory, &Buffer);
+	            GameUpdateAndRender(&GameMemory, &Buffer, (real32)uSPerFrame);
             
 	            /* We've returned from the game code */
 	            win32_window_dimension Dimension = Win32GetWindowDimension(Window);
@@ -278,7 +280,7 @@ WinMain(HINSTANCE 	Instance,
 	            int64_t CounterElapsed = (EndCounter.QuadPart - LastCounter.QuadPart);
 	            
 	            // TOOD: might modify these to floating point to get some fractional precision
-	            int32_t uSPerFrame = (int32_t)((1000*1000*CounterElapsed) / PerfCountFrequency);
+	            uSPerFrame = (int32_t)((1000*1000*CounterElapsed) / PerfCountFrequency);
 	            int32_t FPS = (int32_t)(PerfCountFrequency / CounterElapsed);
 	            int32_t MCPF = (int32_t)(CyclesElapsed/ (1000*1000));
 	            
