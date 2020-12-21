@@ -27,8 +27,13 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 
 	if(dx == 0){
 		// Handle vertical case
+
+		//Swap the direction if necessary
+		if(dy < 0) {y=p2.y; end_y=p1.y;}
+		else {y=p1.y; end_y=p2.y;}
+
 		uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch) + p1.x;
-		for(y=p1.y; y < p2.y; ++y)
+		for(; y < end_y; ++y)
 		{
 			*(uint32_t *)Row = color;
 			Row += Buffer->Pitch;
@@ -36,14 +41,22 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 	}
 	else if(dy == 0){
 		// Handle horizontal case
-		uint8_t *Pixel = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch) + p1.x;
-		for(x=p1.x; x < p2.x; ++x)
+
+		// Swap the direction if necessary
+		if(dx < 0) {x = p2.x; end_x = p1.x;}
+		else {x=p1.x; end_x=p2.x;}
+
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch);
+		uint32_t *Pixel = (uint32_t *)Row + x;
+		for(; x < p2.x; ++x)
 		{
-			*(uint32_t *)Pixel = color;
+			*Pixel = color;
 			Pixel++;
 		}
 	}
 	else{
+		// Here we handle lines that are neither vertical nor horizontal
+		// and we'll use Bresenham algorithm
 		abs_dx = ABS(dx);
 		abs_dy = ABS(dy);
 		px = 2*abs_dy - abs_dx;
@@ -98,28 +111,12 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 	}
 }
 
-// Performs the projection of the 3D line into 2D space, and then draws the line as a 2D line
-internal void
-DrawLine_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, uint32_t color)
-{
-}
-
 internal void
 DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color)
 {
 	DrawLine_2D(Buffer, p1, p2, color);
 	DrawLine_2D(Buffer, p2, p3, color);
 	DrawLine_2D(Buffer, p3, p1, color);
-}
-
-internal void
-DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, uint32_t color)
-{
-	/*
-	DrawLine_3D();
-	DrawLine_3D();
-	DrawLine_3D();
-	*/
 }
 
 internal void
