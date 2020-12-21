@@ -47,4 +47,16 @@ typedef struct Mesh
 	std::vector<Triangle_3D> tris;
 } Mesh;
 
+internal void MatrixVecMult(Point_3D *out_point, Point_3D *in_point, real32 m[4][4]);
+
+internal void DrawPixel(game_offscreen_buffer *Buffer, real32 x, real32 y, uint32_t color);
+internal void DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color);
+internal void DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color);
+internal void DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color);
+
+
+internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color);
+internal void FillColor(game_offscreen_buffer *Buffer, uint32_t color);
+
+
 #endif // DRAWING_H

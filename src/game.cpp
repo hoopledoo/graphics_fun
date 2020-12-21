@@ -42,7 +42,7 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}, {1.0f,0.0f,0.0f}},
 	};
 
-	// Projection Matrix
+	// Projection Matrix -- This is a placeholder until we implement a proper camera
 	real32 fNear = 0.1f;
 	real32 fFar = 10000.0f;
 	real32 fFov = 90.0f;
@@ -91,6 +91,9 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	real32 matRotX[4][4] = {0};
 	fTheta += 1.0f * (delta_time / (1000 * 1000));
 
+	// These hard-coded rotation matrices are place-holders to help demonstrate
+	// 3D functionality, before we've implemented the camera
+
 	// Rotation Z
 	matRotZ[0][0] = cosf(fTheta);
 	matRotZ[0][1] = sinf(fTheta);
@@ -109,8 +112,7 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 	for (Triangle_3D tri : cube.tris)
 	{
-		Triangle_3D triTranslated, triProjected, triRotatedZ, triRotatedZX;
-		Triangle_2D triProjected_2D = {0};
+		Triangle_3D triTranslated, triRotatedZ, triRotatedZX;
 
 		// Rotate in Z-Axis
 		MatrixVecMult(&triRotatedZ.p1, &tri.p1, matRotZ);
@@ -123,36 +125,15 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		MatrixVecMult(&triRotatedZX.p3, &triRotatedZ.p3, matRotX);
 
 		// Offset into the screen
+		// TODO: this is a placeholder until a proper camera is implemented
 		triTranslated = triRotatedZX;
 		triTranslated.p1.z = triRotatedZX.p1.z + 100.0f;
 		triTranslated.p2.z = triRotatedZX.p2.z + 100.0f;
 		triTranslated.p3.z = triRotatedZX.p3.z + 100.0f;
-	
-	/*	
-		triTranslated = tri;
-		triTranslated.p1.z = tri.p1.z + 3.0f;
-		triTranslated.p2.z = tri.p2.z + 3.0f;
-		triTranslated.p3.z = tri.p3.z + 3.0f;
-	*/
 
-		// Project triangles from 3D --> 2D
-		MatrixVecMult(&triProjected.p1, &triTranslated.p1, projMatrix);
-		MatrixVecMult(&triProjected.p2, &triTranslated.p2, projMatrix);
-		MatrixVecMult(&triProjected.p3, &triTranslated.p3, projMatrix);
-
-		// Scale into view - and eliminate the z component
-		triProjected_2D.p1.x = triProjected.p1.x + 1.f; triProjected_2D.p1.y = triProjected.p1.y + 1.f;
-		triProjected_2D.p2.x = triProjected.p2.x + 1.f; triProjected_2D.p2.y = triProjected.p2.y + 1.f;
-		triProjected_2D.p3.x = triProjected.p3.x + 1.f; triProjected_2D.p3.y = triProjected.p3.y + 1.f;
-		triProjected_2D.p1.x *= (0.5f * (real32)Buffer->Width);
-		triProjected_2D.p1.y *= (0.5f * (real32)Buffer->Height);
-		triProjected_2D.p2.x *= (0.5f * (real32)Buffer->Width);
-		triProjected_2D.p2.y *= (0.5f * (real32)Buffer->Height);
-		triProjected_2D.p3.x *= (0.5f * (real32)Buffer->Width);
-		triProjected_2D.p3.y *= (0.5f * (real32)Buffer->Height);
-
-		// Rasterize triangle
-		DrawTriangle_2D(Buffer, triProjected_2D.p1, triProjected_2D.p2, triProjected_2D.p3, WHITE);
+		// Rasterize triangle -- note, we need 2D triangles
+		// TODO: update this call once the camera has been implemented
+		DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);
 	}
 
 	// This is called 'per-frame'

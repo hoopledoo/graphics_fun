@@ -140,11 +140,31 @@ DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	DrawLine_2D(Buffer, p3, p1, color);
 }
 
+// TODO: improve this so it takes a camera and performs the translations we want
 internal void
-DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, uint32_t color)
+DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color)
 {
-	Triangle_2D translatedTri = {{p1.x,p1.y}, {p2.x, p2.y}, {p3.x, p3.y}};
-	DrawTriangle_2D(Buffer, translatedTri.p1, translatedTri.p2, translatedTri.p3, color);
+	Triangle_3D triProjected = {0};
+	Triangle_2D triProjected_2D = {0};
+
+	// Project triangles from 3D --> 2D
+	MatrixVecMult(&triProjected.p1, &p1, projMatrix);
+	MatrixVecMult(&triProjected.p2, &p2, projMatrix);
+	MatrixVecMult(&triProjected.p3, &p3, projMatrix);
+
+	// Scale into view - and eliminate the z component
+	// TODO: this is a placeholder until a proper camera is implemented
+	triProjected_2D.p1.x = triProjected.p1.x + 1.f; triProjected_2D.p1.y = triProjected.p1.y + 1.f;
+	triProjected_2D.p2.x = triProjected.p2.x + 1.f; triProjected_2D.p2.y = triProjected.p2.y + 1.f;
+	triProjected_2D.p3.x = triProjected.p3.x + 1.f; triProjected_2D.p3.y = triProjected.p3.y + 1.f;
+	triProjected_2D.p1.x *= (0.5f * (real32)Buffer->Width);
+	triProjected_2D.p1.y *= (0.5f * (real32)Buffer->Height);
+	triProjected_2D.p2.x *= (0.5f * (real32)Buffer->Width);
+	triProjected_2D.p2.y *= (0.5f * (real32)Buffer->Height);
+	triProjected_2D.p3.x *= (0.5f * (real32)Buffer->Width);
+	triProjected_2D.p3.y *= (0.5f * (real32)Buffer->Height);
+
+	DrawTriangle_2D(Buffer, triProjected_2D.p1, triProjected_2D.p2, triProjected_2D.p3, color);
 }
 
 internal void
