@@ -3,15 +3,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#define BLUE 0x0000ff
-#define GREEN 0x00ff00
-#define RED 0xff0000
-#define BLACK 0x000000 
-#define WHITE 0xffffff
-#define YELLOW 0xffff00
-
-#define ABS(N) ((N<0)?(-N):(N))
-
 /*
 GAME_INTERNAL:
 0 - Build for release
@@ -92,19 +83,6 @@ struct game_memory
     uint64_t TransientStorageSize;
     void *TransientStorage; // NOTE: REQUIRED to be cleared to zero @ startup
 };
-
-typedef struct Point_2D
-{
-    int x;
-    int y; 
-} Point_2D;
-
-typedef struct Point_3D
-{
-    int x;
-    int y;
-    int z;
-} Point_3D;
 
 internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer);
 

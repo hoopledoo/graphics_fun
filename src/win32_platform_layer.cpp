@@ -19,8 +19,12 @@ typedef int32_t bool32;
 // Remember - we're just building one giant file (translation unit)
 // rather than splitting out into tons of tiny pieces
 // this might be a controversial technique...
+// ------------------------------------------------------------------
+// NOTE: drawing.cpp requires the #defines and typedefs above
+#include "drawing.cpp"
 // NOTE: game.cpp requires the #defines and typedefs above ^
 #include "game.cpp"
+// ------------------------------------------------------------------
 
 #include <malloc.h>
 #include <windows.h>
