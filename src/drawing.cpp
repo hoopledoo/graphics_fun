@@ -32,7 +32,8 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		if(dy < 0) {y=p2.y; end_y=p1.y;}
 		else {y=p1.y; end_y=p2.y;}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch) + p1.x;
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (y * Buffer->Pitch);
+		Row = (uint8_t *)((uint32_t *)Row + p1.x);
 		for(; y < end_y; ++y)
 		{
 			*(uint32_t *)Row = color;
