@@ -1,18 +1,18 @@
 #include "drawing.h"
 
 internal void
-DrawPixel(game_offscreen_buffer *Buffer, int x, int y, uint32_t color)
+DrawPixel(game_offscreen_buffer *Buffer, real32 x, real32 y, uint32_t color)
 {
 	if (x < 0 || y < 0 || x >= Buffer->Width || y >= Buffer->Height) return;
-	uint8_t *Row = (uint8_t *)(Buffer->Memory) + (y * (Buffer->Pitch));
-	uint32_t *Pixel = (uint32_t *)Row + x;
+	uint8_t *Row = (uint8_t *)(Buffer->Memory) + ((int)y * (Buffer->Pitch));
+	uint32_t *Pixel = (uint32_t *)Row + (int)x;
     *Pixel = color;
 }
 
 internal void
 DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
-	int x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;
+	real32 x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;
 	
 	//Bounds Check
 	if(p1.x < 0 || p1.x >= Buffer->Width || p2.x < 0 || p2.x >= Buffer->Width ||
@@ -31,8 +31,8 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		if(dy < 0) {y=p2.y; end_y=p1.y;}
 		else {y=p1.y; end_y=p2.y;}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + (y * Buffer->Pitch);
-		Row = (uint8_t *)((uint32_t *)Row + p1.x);
+		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)y * Buffer->Pitch);
+		Row = (uint8_t *)((uint32_t *)Row + (int)p1.x);
 		for(; y < end_y; ++y)
 		{
 			*(uint32_t *)Row = color;
@@ -46,8 +46,8 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		if(dx < 0) {x = p2.x; end_x = p1.x;}
 		else {x=p1.x; end_x=p2.x;}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch);
-		uint32_t *Pixel = (uint32_t *)Row + x;
+		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)p1.y * Buffer->Pitch);
+		uint32_t *Pixel = (uint32_t *)Row + (int)x;
 		for(; x < p2.x; ++x)
 		{
 			*Pixel = color;
@@ -129,7 +129,7 @@ DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3
 internal void
 FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
-   	int dx, dy, x, y, start_x, start_y, end_x, end_y;
+   	real32 dx, dy, x, y, start_x, start_y, end_x, end_y;
    	dx = p2.x-p1.x;
 	dy = p2.y-p1.y;
 
@@ -140,11 +140,11 @@ FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 	if(dy < 0) {start_y=p2.y; end_y=p1.y;}
 	else {start_y=p1.y; end_y=p2.y;}
 
-    uint8_t *Row = (uint8_t *)Buffer->Memory + (start_y * Buffer->Pitch); // get a byte pointer to memory
+    uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)start_y * Buffer->Pitch); // get a byte pointer to memory
 
     for(y=start_y; y<end_y; ++y)
     {
-        uint32_t *Pixel = (uint32_t *)Row + start_x; // point to the start of the row
+        uint32_t *Pixel = (uint32_t *)Row + (int)start_x; // point to the start of the row
         for(x=start_x; x<end_x; ++x)
         {
             *Pixel++ = color;
@@ -159,10 +159,10 @@ FillColor(game_offscreen_buffer *Buffer, uint32_t color)
 {
     uint8_t *Row = (uint8_t *)Buffer->Memory; // get a byte pointer to memory
 
-    for(int  y=0; y < Buffer->Height; ++y)
+    for(real32  y=0; y < Buffer->Height; ++y)
     {
         uint32_t *Pixel = (uint32_t *)Row; // point to the start of the row
-        for(int x=0; x < Buffer->Width; ++x)
+        for(real32 x=0; x < Buffer->Width; ++x)
         {
             *Pixel++ = color;
             /*

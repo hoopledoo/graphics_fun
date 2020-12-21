@@ -60,19 +60,19 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer)
 
 //#if 0
 	Point_2D a, b, c;
-	a.x = 0; a.y = 0;
-	b.x = 0; b.y = 100;
-	c.x = 100; c.y = 100;
+	a.x = 0.0f; a.y = 0.0f;
+	b.x = 0.0f; b.y = 100.0f;
+	c.x = 100.0f; c.y = 100.0f;
 	DrawTriangle_2D(Buffer, a, b, c, WHITE);
 
 	Point_2D d,e;
-	d.x = 800; d.y=400;
-	e.x = 900; e.y=500;
+	d.x = 800.0f; d.y=400.0f;
+	e.x = 900.0f; e.y=500.0f;
 	FillRect_2D(Buffer, d,e, BLUE);
 
 	Point_2D f,g;
-	f.x = 300; f.y=50;
-	g.x = 500; g.y=150;
+	f.x = 300.0f; f.y=50.0f;
+	g.x = 500.0f; g.y=150.0f;
 	FillRect_2D(Buffer, f, g, GREEN);
 //#endif
 

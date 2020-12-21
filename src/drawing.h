@@ -16,15 +16,15 @@
 
 typedef struct Point_2D
 {
-    int x;
-    int y; 
+    real32 x;
+    real32 y; 
 } Point_2D;
 
 typedef struct Point_3D
 {
-    int x;
-    int y;
-    int z;
+    real32 x;
+    real32 y;
+    real32 z;
 } Point_3D;
 
 typedef struct Triangle_2D
