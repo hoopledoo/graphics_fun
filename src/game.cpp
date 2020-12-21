@@ -2,7 +2,8 @@
 
 // Temporarily using these globals, will find a better system later
 global_variable Mesh cube;
-global_variable real32 projMatrix[4][4] = {0.0f};
+global_variable real32 projMatrix[4][4] = {0};
+global_variable real32 fTheta = 1.0f;
 
 // this is stop-gap hack
 // TODO: Move this functionality to a proper
@@ -10,42 +11,42 @@ global_variable real32 projMatrix[4][4] = {0.0f};
 bool32 initialized = false;
 
 internal void
-Init()
+Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 {
 	// Set up a basic cube
 	// TODO: we probably should be handling this elsewhere
 	// this is just set up to get it working now
 	cube.tris = {
-		// NORTH
-		{{0.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {1.0f,1.0f,1.0f}},
-		{{0.0f,0.0f,1.0f}, {1.0f,1.0f,1.0f}, {1.0f,0.0f,1.0f}},
-
-		// EAST
-		{{0.0f,0.0f,0.0f}, {0.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}},
-		{{0.0f,0.0f,0.0f}, {0.0f,1.0f,1.0f}, {0.0f,1.0f,0.0f}},
-
 		// SOUTH
 		{{0.0f,0.0f,0.0f}, {0.0f,1.0f,0.0f}, {1.0f,1.0f,0.0f}},
 		{{0.0f,0.0f,0.0f}, {1.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}},
 
+		// EAST
+		{{1.0f,0.0f,0.0f}, {1.0f,1.0f,.0f}, {1.0f,1.0f,1.0f}},
+		{{1.0f,0.0f,0.0f}, {1.0f,1.0f,1.0f}, {1.0f,0.0f,1.0f}},
+
+		// NORTH
+		{{1.0f,0.0f,1.0f}, {1.0f,1.0f,1.0f}, {0.0f,1.0f,1.0f}},
+		{{1.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {1.0f,0.0f,1.0f}},
+
 		// WEST
-		{{1.0f,0.0f,0.0f}, {1.0f,0.0f,1.0f}, {1.0f,1.0f,1.0f}},
-		{{1.0f,0.0f,0.0f}, {1.0f,1.0f,1.0f}, {1.0f,1.0f,0.0f}},
+		{{0.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {0.0f,1.0f,0.0f}},
+		{{0.0f,0.0f,1.0f}, {0.0f,1.0f,0.0f}, {0.0f,0.0f,0.0f}},
 
 		// TOP
-		{{0.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {1.0f,1.0f,1.0f}},
-		{{0.0f,0.0f,1.0f}, {1.0f,1.0f,1.0f}, {1.0f,0.0f,1.0f}},
+		{{0.0f,1.0f,0.0f}, {0.0f,1.0f,1.0f}, {1.0f,1.0f,1.0f}},
+		{{0.0f,1.0f,0.0f}, {1.0f,1.0f,1.0f}, {1.0f,1.0f,0.0f}},
 
 		// BOTTOM
-		{{0.0f,0.0f,0.0f}, {0.0f,1.0f,0.0f}, {1.0f,1.0f,0.0f}},
-		{{0.0f,0.0f,0.0f}, {1.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}},
+		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}},
+		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}, {1.0f,0.0f,0.0f}},
 	};
 
 	// Projection Matrix
 	real32 fNear = 0.1f;
-	real32 fFar = 1000.0f;
+	real32 fFar = 10000.0f;
 	real32 fFov = 90.0f;
-	real32 fAspectRatio = (real32)HEIGHT / (real32)WIDTH;
+	real32 fAspectRatio = (real32)Buffer->Height / (real32)Buffer->Width;
 	real32 fFovRad = 1.0f / tanf((real32)(fFov * 0.5f) / (real32)(180.0f * Pi32));
 
 	projMatrix[0][0] = fAspectRatio * fFovRad;
@@ -61,21 +62,13 @@ Init()
 internal void 
 GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time)
 {
-	real32 fTheta = 1.0f;
 	// We should do some better initialization
-	if(!initialized) {Init();}
+	if(!initialized) {Init(Memory, Buffer);}
 
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
 
 #if 0
-	for (Triangle_3D tri : cube.tris)
-	{
-		DrawTriangle_3D(Buffer, tri.p1, tri.p2, tri.p3, WHITE);
-	}
-#endif
-
-//#if 0
 	Point_2D a, b, c;
 	a.x = 0.0f; a.y = 0.0f;
 	b.x = 0.0f; b.y = 100.0f;
@@ -91,12 +84,12 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	f.x = 300.0f; f.y=50.0f;
 	g.x = 500.0f; g.y=150.0f;
 	FillRect_2D(Buffer, f, g, GREEN);
-//#endif
+#endif
 
-#if 0
 	// Set up rotation matrices
-	real32 matRotZ[4][4], matRotX[4][4];
-	//fTheta += 1.0f * (delta_time / (1000 * 1000));
+	real32 matRotZ[4][4] = {0};
+	real32 matRotX[4][4] = {0};
+	fTheta += 1.0f * (delta_time / (1000 * 1000));
 
 	// Rotation Z
 	matRotZ[0][0] = cosf(fTheta);
@@ -131,30 +124,36 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 		// Offset into the screen
 		triTranslated = triRotatedZX;
-		triTranslated.p1.z = triRotatedZX.p1.z + 3.0f;
-		triTranslated.p2.z = triRotatedZX.p2.z + 3.0f;
-		triTranslated.p3.z = triRotatedZX.p3.z + 3.0f;
+		triTranslated.p1.z = triRotatedZX.p1.z + 100.0f;
+		triTranslated.p2.z = triRotatedZX.p2.z + 100.0f;
+		triTranslated.p3.z = triRotatedZX.p3.z + 100.0f;
+	
+	/*	
+		triTranslated = tri;
+		triTranslated.p1.z = tri.p1.z + 3.0f;
+		triTranslated.p2.z = tri.p2.z + 3.0f;
+		triTranslated.p3.z = tri.p3.z + 3.0f;
+	*/
 
 		// Project triangles from 3D --> 2D
 		MatrixVecMult(&triProjected.p1, &triTranslated.p1, projMatrix);
 		MatrixVecMult(&triProjected.p2, &triTranslated.p2, projMatrix);
 		MatrixVecMult(&triProjected.p3, &triTranslated.p3, projMatrix);
 
-		// Scale into view
-		triProjected_2D.p1.x += 1.0f; triProjected_2D.p1.y += 1.0f;
-		triProjected_2D.p2.x += 1.0f; triProjected_2D.p2.y += 1.0f;
-		triProjected_2D.p3.x += 1.0f; triProjected_2D.p3.y += 1.0f;
-		triProjected_2D.p1.x *= (0.5f * (real32)WIDTH);
-		triProjected_2D.p1.y *= (0.5f * (real32)HEIGHT);
-		triProjected_2D.p2.x *= (0.5f * (real32)WIDTH);
-		triProjected_2D.p2.y *= (0.5f * (real32)HEIGHT);
-		triProjected_2D.p3.x *= (0.5f * (real32)WIDTH);
-		triProjected_2D.p3.y *= (0.5f * (real32)HEIGHT);
+		// Scale into view - and eliminate the z component
+		triProjected_2D.p1.x = triProjected.p1.x + 1.f; triProjected_2D.p1.y = triProjected.p1.y + 1.f;
+		triProjected_2D.p2.x = triProjected.p2.x + 1.f; triProjected_2D.p2.y = triProjected.p2.y + 1.f;
+		triProjected_2D.p3.x = triProjected.p3.x + 1.f; triProjected_2D.p3.y = triProjected.p3.y + 1.f;
+		triProjected_2D.p1.x *= (0.5f * (real32)Buffer->Width);
+		triProjected_2D.p1.y *= (0.5f * (real32)Buffer->Height);
+		triProjected_2D.p2.x *= (0.5f * (real32)Buffer->Width);
+		triProjected_2D.p2.y *= (0.5f * (real32)Buffer->Height);
+		triProjected_2D.p3.x *= (0.5f * (real32)Buffer->Width);
+		triProjected_2D.p3.y *= (0.5f * (real32)Buffer->Height);
 
 		// Rasterize triangle
 		DrawTriangle_2D(Buffer, triProjected_2D.p1, triProjected_2D.p2, triProjected_2D.p3, WHITE);
 	}
-#endif
 
 	// This is called 'per-frame'
 }

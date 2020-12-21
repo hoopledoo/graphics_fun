@@ -28,13 +28,6 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 {
 	real32 x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;
 	
-	//Bounds Check
-	if(p1.x < 0 || p1.x >= Buffer->Width || p2.x < 0 || p2.x >= Buffer->Width ||
-		p1.y < 0 || p1.y >= Buffer->Width || p2.y < 0 || p2.y >= Buffer->Width) 
-	{
-		return;
-	}
-	
 	dx = p2.x-p1.x;
 	dy = p2.y-p1.y;
 
@@ -44,6 +37,13 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		//Swap the direction if necessary
 		if(dy < 0) {y=p2.y; end_y=p1.y;}
 		else {y=p1.y; end_y=p2.y;}
+
+		// Clip the lines at the boundaries of the window height
+		if(y < 0) {y = 0.0f;}
+		else if (y >= Buffer->Height) {y = (real32)(Buffer->Height - 1);}
+
+		if(end_y < 0) {end_y = 0.0f;}
+		else if (end_y >= Buffer->Height) {end_y = (real32)(Buffer->Height - 1);}
 
 		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)y * Buffer->Pitch);
 		Row = (uint8_t *)((uint32_t *)Row + (int)p1.x);
@@ -59,6 +59,13 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		// Swap the direction if necessary
 		if(dx < 0) {x = p2.x; end_x = p1.x;}
 		else {x=p1.x; end_x=p2.x;}
+
+		// Clip the lines at the boundaries of the window width
+		if(x < 0) {x = 0.0f;}
+		else if (x >= Buffer->Width) {x = (real32)(Buffer->Width - 1);}
+
+		if(end_x < 0) {end_x = 0.0f;}
+		else if (end_x >= Buffer->Width) {end_x = (real32)(Buffer->Width - 1);}
 
 		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)p1.y * Buffer->Pitch);
 		uint32_t *Pixel = (uint32_t *)Row + (int)x;

@@ -6,6 +6,10 @@
 // TODO: We may want to handle this differently later
 #define BYTESPERPIXEL 4
 
+// This is temporary, TODO: we want to better handle window sizing later
+#define WIDTH 1080
+#define HEIGHT 720
+
 struct win32_offscreen_buffer
 {
 	BITMAPINFO Info;
