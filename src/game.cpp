@@ -120,14 +120,14 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		Triangle_2D triProjected_2D = {0};
 
 		// Rotate in Z-Axis
-		MatrixVecMult(triRotatedZ.p1, tri.p1, matRotZ);
-		MatrixVecMult(triRotatedZ.p2, tri.p2, matRotZ);
-		MatrixVecMult(triRotatedZ.p3, tri.p3, matRotZ);
+		MatrixVecMult(&triRotatedZ.p1, &tri.p1, matRotZ);
+		MatrixVecMult(&triRotatedZ.p2, &tri.p2, matRotZ);
+		MatrixVecMult(&triRotatedZ.p3, &tri.p3, matRotZ);
 
 		// Rotate in X-Axis
-		MatrixVecMult(triRotatedZX.p1, triRotatedZ.p1, matRotX);
-		MatrixVecMult(triRotatedZX.p2, triRotatedZ.p2, matRotX);
-		MatrixVecMult(triRotatedZX.p3, triRotatedZ.p3, matRotX);
+		MatrixVecMult(&triRotatedZX.p1, &triRotatedZ.p1, matRotX);
+		MatrixVecMult(&triRotatedZX.p2, &triRotatedZ.p2, matRotX);
+		MatrixVecMult(&triRotatedZX.p3, &triRotatedZ.p3, matRotX);
 
 		// Offset into the screen
 		triTranslated = triRotatedZX;
@@ -136,9 +136,9 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		triTranslated.p3.z = triRotatedZX.p3.z + 3.0f;
 
 		// Project triangles from 3D --> 2D
-		MatrixVecMult(triProjected.p1, triTranslated.p1, projMatrix);
-		MatrixVecMult(triProjected.p2, triTranslated.p2, projMatrix);
-		MatrixVecMult(triProjected.p3, triTranslated.p3, projMatrix);
+		MatrixVecMult(&triProjected.p1, &triTranslated.p1, projMatrix);
+		MatrixVecMult(&triProjected.p2, &triTranslated.p2, projMatrix);
+		MatrixVecMult(&triProjected.p3, &triTranslated.p3, projMatrix);
 
 		// Scale into view
 		triProjected_2D.p1.x += 1.0f; triProjected_2D.p1.y += 1.0f;
