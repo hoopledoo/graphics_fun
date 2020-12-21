@@ -51,15 +51,14 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer)
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
 
-//#if 0
+#if 0
 	for (Triangle_3D tri : cube.tris)
 	{
-		Triangle_2D translatedTri = {{tri.p1.x,tri.p1.y}, {tri.p2.x, tri.p2.y}, {tri.p3.x, tri.p3.y}};
-		DrawTriangle_2D(Buffer, translatedTri.p1, translatedTri.p2, translatedTri.p3, WHITE);
+		DrawTriangle_3D(Buffer, tri.p1, tri.p2, tri.p3, WHITE);
 	}
-//#endif
+#endif
 
-#if 0
+//#if 0
 	Point_2D a, b, c;
 	a.x = 0; a.y = 0;
 	b.x = 0; b.y = 100;
@@ -75,7 +74,7 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer)
 	f.x = 300; f.y=50;
 	g.x = 500; g.y=150;
 	FillRect_2D(Buffer, f, g, GREEN);
-#endif
+//#endif
 
 	// This is called 'per-frame'
 }

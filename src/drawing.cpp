@@ -9,7 +9,6 @@ DrawPixel(game_offscreen_buffer *Buffer, int x, int y, uint32_t color)
     *Pixel = color;
 }
 
-/* Note: we should improve this by anti-aliasing. */
 internal void
 DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
@@ -121,14 +120,32 @@ DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 }
 
 internal void
+DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, uint32_t color)
+{
+	Triangle_2D translatedTri = {{p1.x,p1.y}, {p2.x, p2.y}, {p3.x, p3.y}};
+	DrawTriangle_2D(Buffer, translatedTri.p1, translatedTri.p2, translatedTri.p3, color);
+}
+
+internal void
 FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
-    uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch); // get a byte pointer to memory
+   	int dx, dy, x, y, start_x, start_y, end_x, end_y;
+   	dx = p2.x-p1.x;
+	dy = p2.y-p1.y;
 
-    for(int  y=p1.y; y < p2.y; ++y)
+	//Swap the direction if necessary
+	if(dx < 0) {start_x = p2.x; end_x = p1.x;}
+	else {start_x=p1.x; end_x=p2.x;}
+
+	if(dy < 0) {start_y=p2.y; end_y=p1.y;}
+	else {start_y=p1.y; end_y=p2.y;}
+
+    uint8_t *Row = (uint8_t *)Buffer->Memory + (start_y * Buffer->Pitch); // get a byte pointer to memory
+
+    for(y=start_y; y<end_y; ++y)
     {
-        uint32_t *Pixel = (uint32_t *)Row + p1.x; // point to the start of the row
-        for(int x=p1.x; x < p2.x; ++x)
+        uint32_t *Pixel = (uint32_t *)Row + start_x; // point to the start of the row
+        for(x=start_x; x<end_x; ++x)
         {
             *Pixel++ = color;
         } // end for loop through columns
