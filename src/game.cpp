@@ -4,6 +4,7 @@
 global_variable Mesh cube;
 global_variable real32 projMatrix[4][4] = {0};
 global_variable real32 fTheta = 1.0f;
+global_variable Vec3D vCamera = {};
 
 // this is stop-gap hack
 // TODO: Move this functionality to a proper
@@ -22,12 +23,12 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 		{{0.0f,0.0f,0.0f}, {1.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}},
 
 		// EAST
-		{{1.0f,0.0f,0.0f}, {1.0f,1.0f,.0f}, {1.0f,1.0f,1.0f}},
+		{{1.0f,0.0f,0.0f}, {1.0f,1.0f,0.0f}, {1.0f,1.0f,1.0f}},
 		{{1.0f,0.0f,0.0f}, {1.0f,1.0f,1.0f}, {1.0f,0.0f,1.0f}},
 
 		// NORTH
 		{{1.0f,0.0f,1.0f}, {1.0f,1.0f,1.0f}, {0.0f,1.0f,1.0f}},
-		{{1.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {1.0f,0.0f,1.0f}},
+		{{1.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {0.0f,0.0f,1.0f}},
 
 		// WEST
 		{{0.0f,0.0f,1.0f}, {0.0f,1.0f,1.0f}, {0.0f,1.0f,0.0f}},
@@ -41,6 +42,8 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}},
 		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}, {1.0f,0.0f,0.0f}},
 	};
+
+	cube.offset.z = 50.0f;
 
 	// Projection Matrix -- This is a placeholder until we implement a proper camera
 	real32 fNear = 0.1f;
@@ -91,8 +94,11 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	real32 matRotX[4][4] = {0};
 	fTheta += 1.0f * (delta_time / (1000 * 1000));
 
-	// These hard-coded rotation matrices are place-holders to help demonstrate
+	// These rotation matrices are place-holders to help demonstrate
 	// 3D functionality, before we've implemented the camera
+
+	// TODO: wrap up rotation matrix generation cleanly into our drawing.cpp "library"
+	// These matrices are easy to derive, and we can look them up on wikipedia as well
 
 	// Rotation Z
 	matRotZ[0][0] = cosf(fTheta);
@@ -127,13 +133,33 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		// Offset into the screen
 		// TODO: this is a placeholder until a proper camera is implemented
 		triTranslated = triRotatedZX;
-		triTranslated.p1.z = triRotatedZX.p1.z + 100.0f;
-		triTranslated.p2.z = triRotatedZX.p2.z + 100.0f;
-		triTranslated.p3.z = triRotatedZX.p3.z + 100.0f;
+		triTranslated.p1.z = triRotatedZX.p1.z + cube.offset.z;
+		triTranslated.p2.z = triRotatedZX.p2.z + cube.offset.z;
+		triTranslated.p3.z = triRotatedZX.p3.z + cube.offset.z;
 
-		// Rasterize triangle -- note, we need 2D triangles
-		// TODO: update this call once the camera has been implemented
-		DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);
+		// TODO: this could probably be moved into DrawTriangle_3D
+		// and is mostly a placeholder until a proper camera is implemented
+		// Take the cross product to find the normal vector 
+		// then dot-product the normal vector & the camera's
+		Vec3D normal, line1, line2;
+		line1.x = triTranslated.p2.x - triTranslated.p1.x;
+		line1.y = triTranslated.p2.y - triTranslated.p1.y;
+		line1.z = triTranslated.p2.z - triTranslated.p1.z;
+
+		line2.x = triTranslated.p3.x - triTranslated.p1.x;
+		line2.y = triTranslated.p3.y - triTranslated.p1.y;
+		line2.z = triTranslated.p3.z - triTranslated.p1.z;
+
+		normal = CrossProduct_3D(line1, line2);
+
+		if(normal.x * (triTranslated.p1.x - vCamera.x) + 
+			   normal.y * (triTranslated.p1.y - vCamera.y) +
+			   normal.z * (triTranslated.p1.z - vCamera.z) < 0.0f)
+		{
+			// Rasterize triangle -- note, we need 2D triangles
+			// TODO: update this call once the camera has been implemented
+			DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);			
+		}
 	}
 
 	// This is called 'per-frame'

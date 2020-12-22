@@ -23,6 +23,19 @@ MatrixVecMult(Point_3D *out_point, Point_3D *in_point, real32 m[4][4])
 	}
 }
 
+internal Vec3D
+CrossProduct_3D(Vec3D v1, Vec3D v2)
+{
+	Vec3D normal;
+	normal.x = v1.y * v2.z - v1.z * v2.y;
+	normal.y = v1.z * v2.x - v1.x * v2.z;
+	normal.z = v1.x * v2.y - v1.y * v2.x;
+
+	float l = sqrtf(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
+	normal.x /= l; normal.y /= l; normal.z /= l;
+	return normal;
+}
+
 internal void
 DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
 {
@@ -140,6 +153,88 @@ DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	DrawLine_2D(Buffer, p3, p1, color);
 }
 
+// We'll use Bresenham's algorithm again. Essentially, we'll step through one line until there's been a change
+// in y, then we'll step through the other until there's been a change in y.
+// Once there has been a change in both y's, we'll draw a horizontal line between the two.
+// We'll continue until we reach the end of the lines
+internal void
+FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color)
+{
+	// We first need to find if this is a flat-top, flat-bottom, or if we need to split it
+	real32 dy_p1p2, dy_p1p3, dy_p2p3, dx_p1p2, dx_p1p3, dx_p2p3;
+	Point_2D flattop_start, flattop_end1, flattop_end2, flatbottom_start, flatbottom_end1, flatbottom_end2;
+	bool32 flattop = false;
+	bool32 flatbottom = false;
+
+	dy_p1p2 = p1.y - p2.y;
+	dy_p1p3 = p1.y - p3.y;
+	dy_p2p3 = p2.y - p3.y;
+	dx_p1p2 = p1.x - p2.x;
+	dx_p1p3 = p1.x - p3.x;
+	dx_p2p3 = p2.x - p3.x;
+
+	// Check to make sure the triangle isn't just a horizontal line
+	if(dy_p1p2 == dy_p2p3 && dy_p2p3 == dy_p1p3 && dy_p1p3 == 0) { DrawTriangle_2D(Buffer, p1, p2, p3, color); return;}
+
+	// Check to make sure the triangle isn't just a vertical line
+	if(dx_p1p2 == dx_p2p3 && dx_p2p3 == dx_p1p3 && dx_p1p3 == 0) { DrawTriangle_2D(Buffer, p1, p2, p3, color); return;}	
+
+	// We have a flat-side for our triangle, now determine if a flat-top or flat-bottom
+	else if(dy_p1p2 == 0) 
+	{ 
+		if(dy_p2p3 > 0) { flattop = true; flattop_start = p3; flattop_end1 = p1; flattop_end2 = p2; }
+		else { flatbottom = true; flatbottom_start = p3; flatbottom_end1 = p1; flatbottom_end2 = p2; } 
+	}
+	else if(dy_p2p3 == 0) 
+	{ 
+		if(dy_p1p3 < 0) { flattop = true; flattop_start = p1; flattop_end1 = p2; flattop_end2 = p3; }
+		else { flatbottom = true; flatbottom_start = p1; flatbottom_end1 = p2; flatbottom_end2 = p3; } 	
+	}
+	else if(dy_p1p3 == 0) 
+	{ 
+		if(dy_p1p2 > 0) { flattop = true; flattop_start = p2; flattop_end1 = p1; flattop_end2 = p3; }
+		else { flatbottom = true; flatbottom_start = p2; flatbottom_end1 = p1; flatbottom_end2 = p3; } 
+	}
+	
+	// This doesn't have a flat-side, so we need to find a flat-side
+	else 
+	{
+		// First, Identify the top-most, middle, and bottom-most points
+		Point_2D top_point, middle_point, bottom_point, p4;
+		if( p1.y > p2.y && p2.y > p3.y ) { top_point = p1; middle_point = p2; bottom_point = p3; }
+		else if( p1.y > p3.y && p3.y > p2.y) { top_point = p1; middle_point = p3; bottom_point = p2; }
+		else if( p2.y > p3.y && p3.y > p1.y) { top_point = p2; middle_point = p3; bottom_point = p1; }
+		else if( p2.y > p1.y && p1.y > p3.y) { top_point = p2; middle_point = p1; bottom_point = p3; }
+		else if( p3.y > p1.y && p1.y > p2.y) { top_point = p3; middle_point = p1; bottom_point = p2; }
+		else { top_point = p3; middle_point = p2; bottom_point = p1; }
+
+		// Using the middle-point, split the triangle into two triangles
+		p4.y = middle_point.y;
+		p4.x = p1.x + ((p2.y - p1.y)/(p3.y - p1.y)) * (p3.x - p1.x);
+
+		flattop_start = bottom_point;
+		flattop_end1 = middle_point;
+		flattop_end2 = p4;
+		flattop = true;
+
+		flatbottom_start = top_point;
+		flatbottom_end1 = middle_point;
+		flatbottom_end2 = p4;
+		flatbottom = true;
+	}
+
+	// Here we need to actually draw the flattop & flatbottom triangles
+	if(flattop)
+	{
+
+	}
+	if(flatbottom)
+	{
+
+	}
+
+}
+
 // TODO: improve this so it takes a camera and performs the translations we want
 internal void
 DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color)
@@ -165,6 +260,32 @@ DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3
 	triProjected_2D.p3.y *= (0.5f * (real32)Buffer->Height);
 
 	DrawTriangle_2D(Buffer, triProjected_2D.p1, triProjected_2D.p2, triProjected_2D.p3, color);
+}
+
+internal void
+FillTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color)
+{
+	Triangle_3D triProjected = {0};
+	Triangle_2D triProjected_2D = {0};
+
+	// Project triangles from 3D --> 2D
+	MatrixVecMult(&triProjected.p1, &p1, projMatrix);
+	MatrixVecMult(&triProjected.p2, &p2, projMatrix);
+	MatrixVecMult(&triProjected.p3, &p3, projMatrix);
+
+	// Scale into view - and eliminate the z component
+	// TODO: this is a placeholder until a proper camera is implemented
+	triProjected_2D.p1.x = triProjected.p1.x + 1.f; triProjected_2D.p1.y = triProjected.p1.y + 1.f;
+	triProjected_2D.p2.x = triProjected.p2.x + 1.f; triProjected_2D.p2.y = triProjected.p2.y + 1.f;
+	triProjected_2D.p3.x = triProjected.p3.x + 1.f; triProjected_2D.p3.y = triProjected.p3.y + 1.f;
+	triProjected_2D.p1.x *= (0.5f * (real32)Buffer->Width);
+	triProjected_2D.p1.y *= (0.5f * (real32)Buffer->Height);
+	triProjected_2D.p2.x *= (0.5f * (real32)Buffer->Width);
+	triProjected_2D.p2.y *= (0.5f * (real32)Buffer->Height);
+	triProjected_2D.p3.x *= (0.5f * (real32)Buffer->Width);
+	triProjected_2D.p3.y *= (0.5f * (real32)Buffer->Height);
+
+	FillTriangle_2D(Buffer, triProjected_2D.p1, triProjected_2D.p2, triProjected_2D.p3, color);
 }
 
 internal void
@@ -222,3 +343,6 @@ FillColor(game_offscreen_buffer *Buffer, uint32_t color)
         
     } // end for loop through rows
 }
+
+// TODO: add a draw mesh function that utilizes both the scale and offset
+// to draw a mesh

@@ -27,6 +27,13 @@ typedef struct Point_3D
     real32 z;
 } Point_3D;
 
+typedef struct Vec3D
+{
+    real32 x;
+    real32 y;
+    real32 z;
+} Vec3D;
+
 typedef struct Triangle_2D
 {
 	Point_2D p1;
@@ -45,6 +52,8 @@ typedef struct Triangle_3D
 typedef struct Mesh
 {
 	std::vector<Triangle_3D> tris;
+	Point_3D offset = {0};
+	Point_3D scale = {0};
 } Mesh;
 
 internal void MatrixVecMult(Point_3D *out_point, Point_3D *in_point, real32 m[4][4]);
