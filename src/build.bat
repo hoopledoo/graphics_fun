@@ -1,6 +1,6 @@
 @echo off
 
-set CommonCompilerFlags=-MT -nologo -Gm- -GR- -EHa- -Od -Oi -WX -W4 -wd4100 -wd4189 -wd4505 -wd4101 -DGAME_INTERNAL=1 -DGAME_SLOW=1 -FC -Z7 -Fmwin32_platform_layer.map
+set CommonCompilerFlags=-MT -nologo -Gm- -GR- -EHa- -Od -Oi -WX -wd4100 -wd4189 -wd4505 -wd4101 -W4 -wd4701 -DGAME_INTERNAL=1 -DGAME_SLOW=1 -FC -Z7 -Fmwin32_platform_layer.map
 set CommonLinkerFlags=-opt:ref user32.lib gdi32.lib
 
 if not defined DevEnvDir (

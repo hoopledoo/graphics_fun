@@ -234,12 +234,21 @@ WinMain(HINSTANCE 	Instance,
 	                    case WM_KEYDOWN:
 	                    case WM_KEYUP:
 	                    {
-	                    	uint32_t VKCode = (uint32_t)Message.wParam;
-				        	if(VKCode=='Q')
-				        	{
-				        		GlobalRunning = false;
-				        	}
-	                        // Handle different keypresses.
+							// For now, we're just using Keyups (because they are simplest)
+							// TODO - properly handle both keyups and keydowns
+							if (Message.message == WM_KEYUP)
+							{
+								uint32_t VKCode = (uint32_t)Message.wParam;
+								if (VKCode == 'Q')
+								{
+									GlobalRunning = false;
+								}
+								else if (VKCode == 'S')
+								{
+									GlobalRotating = !GlobalRotating;
+								}
+								// Handle different keypresses.
+							}
 	                    } break;
 	                    
 	                    default:

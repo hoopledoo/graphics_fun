@@ -182,17 +182,17 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	// We have a flat-side for our triangle, now determine if a flat-top or flat-bottom
 	else if(dy_p1p2 == 0) 
 	{ 
-		if(dy_p2p3 > 0) { flattop = true; flattop_start = p3; flattop_end1 = p1; flattop_end2 = p2; }
+		if(dy_p2p3 < 0) { flattop = true; flattop_start = p3; flattop_end1 = p1; flattop_end2 = p2; }
 		else { flatbottom = true; flatbottom_start = p3; flatbottom_end1 = p1; flatbottom_end2 = p2; } 
 	}
 	else if(dy_p2p3 == 0) 
 	{ 
-		if(dy_p1p3 < 0) { flattop = true; flattop_start = p1; flattop_end1 = p2; flattop_end2 = p3; }
+		if(dy_p1p3 > 0) { flattop = true; flattop_start = p1; flattop_end1 = p2; flattop_end2 = p3; }
 		else { flatbottom = true; flatbottom_start = p1; flatbottom_end1 = p2; flatbottom_end2 = p3; } 	
 	}
 	else if(dy_p1p3 == 0) 
 	{ 
-		if(dy_p1p2 > 0) { flattop = true; flattop_start = p2; flattop_end1 = p1; flattop_end2 = p3; }
+		if(dy_p1p2 < 0) { flattop = true; flattop_start = p2; flattop_end1 = p1; flattop_end2 = p3; }
 		else { flatbottom = true; flatbottom_start = p2; flatbottom_end1 = p1; flatbottom_end2 = p3; } 
 	}
 	
@@ -201,11 +201,11 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	{
 		// First, Identify the top-most, middle, and bottom-most points
 		Point_2D top_point, middle_point, bottom_point, p4;
-		if( p1.y > p2.y && p2.y > p3.y ) { top_point = p1; middle_point = p2; bottom_point = p3; }
-		else if( p1.y > p3.y && p3.y > p2.y) { top_point = p1; middle_point = p3; bottom_point = p2; }
-		else if( p2.y > p3.y && p3.y > p1.y) { top_point = p2; middle_point = p3; bottom_point = p1; }
-		else if( p2.y > p1.y && p1.y > p3.y) { top_point = p2; middle_point = p1; bottom_point = p3; }
-		else if( p3.y > p1.y && p1.y > p2.y) { top_point = p3; middle_point = p1; bottom_point = p2; }
+		if( p1.y < p2.y && p2.y < p3.y ) { top_point = p1; middle_point = p2; bottom_point = p3; }
+		else if( p1.y < p3.y && p3.y < p2.y) { top_point = p1; middle_point = p3; bottom_point = p2; }
+		else if( p2.y < p3.y && p3.y < p1.y) { top_point = p2; middle_point = p3; bottom_point = p1; }
+		else if( p2.y < p1.y && p1.y < p3.y) { top_point = p2; middle_point = p1; bottom_point = p3; }
+		else if( p3.y < p1.y && p1.y < p2.y) { top_point = p3; middle_point = p1; bottom_point = p2; }
 		else { top_point = p3; middle_point = p2; bottom_point = p1; }
 
 		// Using the middle-point, split the triangle into two triangles
@@ -226,11 +226,43 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	// Here we need to actually draw the flattop & flatbottom triangles
 	if(flattop)
 	{
+		/* 
+		// Something is wrong in here - our triangles always go "to the right", but sometimes
+		// they should go 'to the left.' 
+		real32 invslope1 = (flattop_start.x - flattop_end1.x) / (flattop_start.y - flattop_end1.y);
+		real32 invslope2 = (flattop_start.x - flattop_end2.x) / (flattop_start.y - flattop_end2.y);
+//		real32 invslope1 = (flattop_end1.x - flattop_start.x) / (flattop_end1.y - flattop_start.y);
+//		real32 invslope2 = (flattop_end2.x - flattop_start.x) / (flattop_end2.y - flattop_start.y);
+		Point_2D curPoint1, curPoint2;
+		curPoint1.x = flattop_start.x;
+		curPoint2.x = flattop_start.x;
 
+		for(real32 y = flattop_start.y; y > flattop_end1.y; y--)
+		{
+			curPoint1.y = y;
+			curPoint2.y = y;
+			DrawLine_2D(Buffer, curPoint1, curPoint2, color);
+			curPoint1.x -= invslope1;
+			curPoint2.x -= invslope2;
+		}
+		*/
 	}
 	if(flatbottom)
 	{
+		/*
+					  float invslope1 = (v2.x - v1.x) / (v2.y - v1.y);
+					  float invslope2 = (v3.x - v1.x) / (v3.y - v1.y);
 
+					  float curx1 = v1.x;
+					  float curx2 = v1.x;
+
+					  for (int scanlineY = v1.y; scanlineY <= v2.y; scanlineY++)
+					  {
+					    drawLine((int)curx1, scanlineY, (int)curx2, scanlineY);
+					    curx1 += invslope1;
+					    curx2 += invslope2;
+					  }
+		*/
 	}
 
 }

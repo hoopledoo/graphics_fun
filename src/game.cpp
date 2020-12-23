@@ -5,6 +5,7 @@ global_variable Mesh cube;
 global_variable real32 projMatrix[4][4] = {0};
 global_variable real32 fTheta = 1.0f;
 global_variable Vec3D vCamera = {};
+global_variable bool32 GlobalRotating = true;
 
 // this is stop-gap hack
 // TODO: Move this functionality to a proper
@@ -79,20 +80,49 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	DrawTriangle_2D(Buffer, a, b, c, WHITE);
 
 	Point_2D d,e;
-	d.x = 800.0f; d.y=400.0f;
-	e.x = 900.0f; e.y=500.0f;
-	FillRect_2D(Buffer, d,e, BLUE);
+	d.x = 0.0f; d.y=25.0f;
+	e.x = 25.0f; e.y=50.0f;
+	FillRect_2D(Buffer, d,e, 0xffffff);
 
 	Point_2D f,g;
-	f.x = 300.0f; f.y=50.0f;
-	g.x = 500.0f; g.y=150.0f;
-	FillRect_2D(Buffer, f, g, GREEN);
+	f.x = 35.0f; f.y=25.0f;
+	g.x = 60.0f; g.y=50.0f;
+	FillRect_2D(Buffer, f, g, 0xefefef);
+
+	Point_2D h,i;
+	h.x = 70.0f; h.y=25.0f;
+	i.x = 95.0f; i.y=50.0f;
+	FillRect_2D(Buffer, h, i, 0xdfdfdf);
+
+	Point_2D j,k;
+	j.x = 105.0f; j.y=25.0f;
+	k.x = 130.0f; k.y=50.0f;
+	FillRect_2D(Buffer, j, k, 0xcfcfcf);
+
+	Point_2D l,m;
+	l.x = 140.0f; l.y=25.0f;
+	m.x = 165.0f; m.y=50.0f;
+	FillRect_2D(Buffer, l, m, 0xbfbfbf);
+
+	Point_2D n,o;
+	n.x = 175.0f; n.y=25.0f;
+	o.x = 200.0f; o.y=50.0f;
+	FillRect_2D(Buffer, n, o, 0xafafaf);
+
+	// To create darker shades of gray, we just need to multiple 0xff by some scale, 
+	// and then shift and OR them together
 #endif
 
+//#if 0
 	// Set up rotation matrices
 	real32 matRotZ[4][4] = {0};
 	real32 matRotX[4][4] = {0};
-	fTheta += 1.0f * (delta_time / (1000 * 1000));
+
+	if(GlobalRotating)
+	{
+		fTheta += 1.0f * (delta_time / (1000 * 1000));
+	}
+	
 
 	// These rotation matrices are place-holders to help demonstrate
 	// 3D functionality, before we've implemented the camera
@@ -114,7 +144,8 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	matRotX[1][2] = sinf(fTheta * 0.5f);
 	matRotX[2][1] = -sinf(fTheta * 0.5f);
 	matRotX[2][2] = cosf(fTheta * 0.5f);
-	matRotX[3][3] = 1;
+	matRotX[3][3] = 1;	
+
 
 	for (Triangle_3D tri : cube.tris)
 	{
@@ -159,8 +190,10 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 			// Rasterize triangle -- note, we need 2D triangles
 			// TODO: update this call once the camera has been implemented
 			DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);			
+			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);
 		}
 	}
+//#endif
 
 	// This is called 'per-frame'
 }
