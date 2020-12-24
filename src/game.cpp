@@ -150,6 +150,7 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	for (Triangle_3D tri : cube.tris)
 	{
 		Triangle_3D triTranslated, triRotatedZ, triRotatedZX;
+		real32 light_dot_product;
 
 		// Rotate in Z-Axis
 		MatrixVecMult(&triRotatedZ.p1, &tri.p1, matRotZ);
@@ -173,6 +174,7 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		// Take the cross product to find the normal vector 
 		// then dot-product the normal vector & the camera's
 		Vec3D normal, line1, line2;
+
 		line1.x = triTranslated.p2.x - triTranslated.p1.x;
 		line1.y = triTranslated.p2.y - triTranslated.p1.y;
 		line1.z = triTranslated.p2.z - triTranslated.p1.z;
@@ -183,14 +185,23 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 		normal = CrossProduct_3D(line1, line2);
 
-		if(normal.x * (triTranslated.p1.x - vCamera.x) + 
-			   normal.y * (triTranslated.p1.y - vCamera.y) +
-			   normal.z * (triTranslated.p1.z - vCamera.z) < 0.0f)
+		if( normal.x * (triTranslated.p1.x - vCamera.x) + 
+			normal.y * (triTranslated.p1.y - vCamera.y) + 
+			normal.z * (triTranslated.p1.z - vCamera.z) < 0.0f)
 		{
 			// Rasterize triangle -- note, we need 2D triangles
 			// TODO: update this call once the camera has been implemented
-			DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);			
-			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);
+			uint32_t color;
+
+			// This is also somewhat of a hack
+			// TODO: implement proper lighting and camera effects. For now, we're just scaling
+			// the brightness of the white based on the calculated z component of the normal vector
+			// for each triangle (our light source is 0,0,1)
+			color = ( (((uint32_t)((WHITE & 0xff0000 >> 4) * -normal.z) << 4) & 0xff0000) |
+					  (((uint32_t)((WHITE & 0x00ff00 >> 2) * -normal.z) << 2) & 0x00ff00) |
+					  (((uint32_t)((WHITE & 0x0000ff) * -normal.z)) & 0xff) );
+			DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);			
+			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);
 		}
 	}
 //#endif

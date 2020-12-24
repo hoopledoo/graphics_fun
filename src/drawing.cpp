@@ -153,6 +153,12 @@ DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	DrawLine_2D(Buffer, p3, p1, color);
 }
 
+internal void
+AdvanceAlongLine(Point_2D start, Point_2D end)
+{
+	
+}
+
 // We'll use Bresenham's algorithm again. Essentially, we'll step through one line until there's been a change
 // in y, then we'll step through the other until there's been a change in y.
 // Once there has been a change in both y's, we'll draw a horizontal line between the two.
@@ -174,25 +180,25 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	dx_p2p3 = p2.x - p3.x;
 
 	// Check to make sure the triangle isn't just a horizontal line
-	if(dy_p1p2 == dy_p2p3 && dy_p2p3 == dy_p1p3 && dy_p1p3 == 0) { DrawTriangle_2D(Buffer, p1, p2, p3, color); return;}
+	if(dy_p1p2 == 0 && dy_p2p3 == 0 && dy_p1p3 == 0) { DrawTriangle_2D(Buffer, p1, p2, p3, color); return;}
 
 	// Check to make sure the triangle isn't just a vertical line
-	if(dx_p1p2 == dx_p2p3 && dx_p2p3 == dx_p1p3 && dx_p1p3 == 0) { DrawTriangle_2D(Buffer, p1, p2, p3, color); return;}	
+	if(dx_p1p2 == 0 && dx_p2p3 == 0 && dx_p1p3 == 0) { DrawTriangle_2D(Buffer, p1, p2, p3, color); return;}	
 
 	// We have a flat-side for our triangle, now determine if a flat-top or flat-bottom
-	else if(dy_p1p2 == 0) 
+	if(dy_p1p2 == 0) 
 	{ 
-		if(dy_p2p3 < 0) { flattop = true; flattop_start = p3; flattop_end1 = p1; flattop_end2 = p2; }
+		if(dy_p2p3 > 0) { flattop = true; flattop_start = p3; flattop_end1 = p1; flattop_end2 = p2; }
 		else { flatbottom = true; flatbottom_start = p3; flatbottom_end1 = p1; flatbottom_end2 = p2; } 
 	}
 	else if(dy_p2p3 == 0) 
 	{ 
-		if(dy_p1p3 > 0) { flattop = true; flattop_start = p1; flattop_end1 = p2; flattop_end2 = p3; }
+		if(dy_p1p3 < 0) { flattop = true; flattop_start = p1; flattop_end1 = p2; flattop_end2 = p3; }
 		else { flatbottom = true; flatbottom_start = p1; flatbottom_end1 = p2; flatbottom_end2 = p3; } 	
 	}
 	else if(dy_p1p3 == 0) 
 	{ 
-		if(dy_p1p2 < 0) { flattop = true; flattop_start = p2; flattop_end1 = p1; flattop_end2 = p3; }
+		if(dy_p1p2 > 0) { flattop = true; flattop_start = p2; flattop_end1 = p1; flattop_end2 = p3; }
 		else { flatbottom = true; flatbottom_start = p2; flatbottom_end1 = p1; flatbottom_end2 = p3; } 
 	}
 	
@@ -201,16 +207,18 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	{
 		// First, Identify the top-most, middle, and bottom-most points
 		Point_2D top_point, middle_point, bottom_point, p4;
-		if( p1.y < p2.y && p2.y < p3.y ) { top_point = p1; middle_point = p2; bottom_point = p3; }
-		else if( p1.y < p3.y && p3.y < p2.y) { top_point = p1; middle_point = p3; bottom_point = p2; }
-		else if( p2.y < p3.y && p3.y < p1.y) { top_point = p2; middle_point = p3; bottom_point = p1; }
-		else if( p2.y < p1.y && p1.y < p3.y) { top_point = p2; middle_point = p1; bottom_point = p3; }
-		else if( p3.y < p1.y && p1.y < p2.y) { top_point = p3; middle_point = p1; bottom_point = p2; }
+
+		// TODO: improve how we're sorting these points
+		if( p1.y > p2.y && p2.y > p3.y ) { top_point = p1; middle_point = p2; bottom_point = p3; }
+		else if( p1.y > p3.y && p3.y > p2.y) { top_point = p1; middle_point = p3; bottom_point = p2; }
+		else if( p2.y > p3.y && p3.y > p1.y) { top_point = p2; middle_point = p3; bottom_point = p1; }
+		else if( p2.y > p1.y && p1.y > p3.y) { top_point = p2; middle_point = p1; bottom_point = p3; }
+		else if( p3.y > p1.y && p1.y > p2.y) { top_point = p3; middle_point = p1; bottom_point = p2; }
 		else { top_point = p3; middle_point = p2; bottom_point = p1; }
 
 		// Using the middle-point, split the triangle into two triangles
 		p4.y = middle_point.y;
-		p4.x = p1.x + ((p2.y - p1.y)/(p3.y - p1.y)) * (p3.x - p1.x);
+		p4.x = top_point.x + ((middle_point.y - top_point.y)/(bottom_point.y - top_point.y)) * (bottom_point.x - top_point.x);
 
 		flattop_start = bottom_point;
 		flattop_end1 = middle_point;
@@ -226,18 +234,34 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	// Here we need to actually draw the flattop & flatbottom triangles
 	if(flattop)
 	{
-		/* 
-		// Something is wrong in here - our triangles always go "to the right", but sometimes
-		// they should go 'to the left.' 
+
 		real32 invslope1 = (flattop_start.x - flattop_end1.x) / (flattop_start.y - flattop_end1.y);
 		real32 invslope2 = (flattop_start.x - flattop_end2.x) / (flattop_start.y - flattop_end2.y);
-//		real32 invslope1 = (flattop_end1.x - flattop_start.x) / (flattop_end1.y - flattop_start.y);
-//		real32 invslope2 = (flattop_end2.x - flattop_start.x) / (flattop_end2.y - flattop_start.y);
+
 		Point_2D curPoint1, curPoint2;
 		curPoint1.x = flattop_start.x;
 		curPoint2.x = flattop_start.x;
 
-		for(real32 y = flattop_start.y; y > flattop_end1.y; y--)
+		for(real32 y = flattop_start.y; y <= flattop_end1.y; y++)
+		{
+			curPoint1.y = y;
+			curPoint2.y = y;
+			DrawLine_2D(Buffer, curPoint1, curPoint2, color);
+			curPoint1.x += invslope1;
+			curPoint2.x += invslope2;
+		}
+	}
+	if(flatbottom)
+	{
+		//#if 0
+		real32 invslope1 = (flatbottom_end1.x - flatbottom_start.x) / (flatbottom_end1.y - flatbottom_start.y);
+		real32 invslope2 = (flatbottom_end2.x - flatbottom_start.x) / (flattop_end2.y - flatbottom_start.y);
+
+		Point_2D curPoint1, curPoint2;
+		curPoint1.x = flatbottom_start.x;
+		curPoint2.x = flatbottom_start.x;
+
+		for(real32 y = flatbottom_start.y; y >= flatbottom_end1.y; y--)
 		{
 			curPoint1.y = y;
 			curPoint2.y = y;
@@ -245,24 +269,7 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 			curPoint1.x -= invslope1;
 			curPoint2.x -= invslope2;
 		}
-		*/
-	}
-	if(flatbottom)
-	{
-		/*
-					  float invslope1 = (v2.x - v1.x) / (v2.y - v1.y);
-					  float invslope2 = (v3.x - v1.x) / (v3.y - v1.y);
-
-					  float curx1 = v1.x;
-					  float curx2 = v1.x;
-
-					  for (int scanlineY = v1.y; scanlineY <= v2.y; scanlineY++)
-					  {
-					    drawLine((int)curx1, scanlineY, (int)curx2, scanlineY);
-					    curx1 += invslope1;
-					    curx2 += invslope2;
-					  }
-		*/
+		//#endif
 	}
 
 }

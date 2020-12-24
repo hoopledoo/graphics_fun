@@ -47,7 +47,7 @@ typedef struct Triangle_3D
 	Point_3D p2;
 	Point_3D p3;
 
-} Traingle_3D;
+} Triangle_3D;
 
 typedef struct Mesh
 {
@@ -55,6 +55,17 @@ typedef struct Mesh
 	Point_3D offset = {0};
 	Point_3D scale = {0};
 } Mesh;
+
+typedef struct LineInfo
+{
+	Point_2D start;
+	Point_2D end;
+	bool32 horizontal;
+	bool32 vertical;
+	bool32 shallow;
+	real32 increment;
+	real32 run_threshold;
+} LineInfo;
 
 internal void MatrixVecMult(Point_3D *out_point, Point_3D *in_point, real32 m[4][4]);
 
