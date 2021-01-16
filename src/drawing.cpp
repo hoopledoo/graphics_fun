@@ -31,6 +31,7 @@ CrossProduct_3D(Vec3D v1, Vec3D v2)
 	normal.y = v1.z * v2.x - v1.x * v2.z;
 	normal.z = v1.x * v2.y - v1.y * v2.x;
 
+	// Normalize our result
 	float l = sqrtf(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
 	normal.x /= l; normal.y /= l; normal.z /= l;
 	return normal;
@@ -82,7 +83,7 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 
 		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)p1.y * Buffer->Pitch);
 		uint32_t *Pixel = (uint32_t *)Row + (int)x;
-		for(; x < p2.x; ++x)
+		for(; x < end_x; ++x)
 		{
 			*Pixel = color;
 			Pixel++;
@@ -166,6 +167,12 @@ AdvanceAlongLine(Point_2D start, Point_2D end)
 internal void
 FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color)
 {
+	// TODO: determine why the naive method includes horizontal line gaps when drawing both 
+	// parts of the triangle, which occurs consistently but only with certain triangles
+
+	// TODO: migrate to a new method using Bresenham's algorithm (the current naive 
+	// method contains glitching lines because it imperfectly steps through)
+
 	// We first need to find if this is a flat-top, flat-bottom, or if we need to split it
 	real32 dy_p1p2, dy_p1p3, dy_p2p3, dx_p1p2, dx_p1p3, dx_p2p3;
 	Point_2D flattop_start, flattop_end1, flattop_end2, flatbottom_start, flatbottom_end1, flatbottom_end2;
@@ -218,31 +225,34 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 
 		// Using the middle-point, split the triangle into two triangles
 		p4.y = middle_point.y;
-		p4.x = top_point.x + ((middle_point.y - top_point.y)/(bottom_point.y - top_point.y)) * (bottom_point.x - top_point.x);
-
-		flattop_start = bottom_point;
-		flattop_end1 = middle_point;
-		flattop_end2 = p4;
-		flattop = true;
+		p4.x = top_point.x + ((middle_point.y - top_point.y)/(bottom_point.y - top_point.y)) * (bottom_point.x - top_point.x);	
 
 		flatbottom_start = top_point;
 		flatbottom_end1 = middle_point;
 		flatbottom_end2 = p4;
 		flatbottom = true;
+
+		flattop_start = bottom_point;
+		flattop_end1 = middle_point;
+		flattop_end2 = p4;
+		flattop = true;
 	}
 
 	// Here we need to actually draw the flattop & flatbottom triangles
 	if(flattop)
 	{
 
-		real32 invslope1 = (flattop_start.x - flattop_end1.x) / (flattop_start.y - flattop_end1.y);
-		real32 invslope2 = (flattop_start.x - flattop_end2.x) / (flattop_start.y - flattop_end2.y);
+		real32 invslope1 = (flattop_end1.x - flattop_start.x) / (flattop_end1.y - flattop_start.y);
+		real32 invslope2 = (flattop_end2.x - flattop_start.x) / (flattop_end2.y - flattop_start.y);
 
 		Point_2D curPoint1, curPoint2;
 		curPoint1.x = flattop_start.x;
 		curPoint2.x = flattop_start.x;
 
-		for(real32 y = flattop_start.y; y <= flattop_end1.y; y++)
+		// Round our ending y up if we need to - this doesn't give us the result we want
+		//if (((int)flattop_end1.y) < ((int)(flattop_end1.y + 0.5f))) { flattop_end1.y = flattop_end1.y + 0.5f; }
+
+		for(real32 y = flattop_start.y; y < flattop_end1.y; y++)
 		{
 			curPoint1.y = y;
 			curPoint2.y = y;
@@ -254,14 +264,14 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	if(flatbottom)
 	{
 		//#if 0
-		real32 invslope1 = (flatbottom_end1.x - flatbottom_start.x) / (flatbottom_end1.y - flatbottom_start.y);
-		real32 invslope2 = (flatbottom_end2.x - flatbottom_start.x) / (flattop_end2.y - flatbottom_start.y);
+		real32 invslope1 = (flatbottom_start.x - flatbottom_end1.x) / (flatbottom_start.y - flatbottom_end1.y);
+		real32 invslope2 = (flatbottom_start.x - flatbottom_end2.x) / (flatbottom_start.y - flatbottom_end2.y);
 
 		Point_2D curPoint1, curPoint2;
 		curPoint1.x = flatbottom_start.x;
 		curPoint2.x = flatbottom_start.x;
 
-		for(real32 y = flatbottom_start.y; y >= flatbottom_end1.y; y--)
+		for(real32 y = flatbottom_start.y; y > flatbottom_end1.y; y--)
 		{
 			curPoint1.y = y;
 			curPoint2.y = y;

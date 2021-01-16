@@ -4,7 +4,7 @@
 global_variable Mesh cube;
 global_variable real32 projMatrix[4][4] = {0};
 global_variable real32 fTheta = 1.0f;
-global_variable Vec3D vCamera = {};
+global_variable Vec3D vCamera = {0};
 global_variable bool32 GlobalRotating = true;
 
 // this is stop-gap hack
@@ -42,6 +42,7 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 		// BOTTOM
 		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}},
 		{{1.0f,0.0f,1.0f}, {0.0f,0.0f,0.0f}, {1.0f,0.0f,0.0f}},
+
 	};
 
 	cube.offset.z = 50.0f;
@@ -71,7 +72,6 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
-
 #if 0
 	Point_2D a, b, c;
 	a.x = 0.0f; a.y = 0.0f;
@@ -111,6 +111,34 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 	// To create darker shades of gray, we just need to multiple 0xff by some scale, 
 	// and then shift and OR them together
+#endif
+
+#if 0
+	// Here. we've identified an issue where the ordering of the points matters
+	// although it really shouldn't!
+	Point_2D p1,p2,p3;
+	p1.x = 25; p1.y = 0;
+	p2.x = 0; p2.y = 0;
+	p3.x = 0; p3.y = 25;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+
+
+	/*
+	p1.x = 0; p1.y = 0;
+	p2.x = 25; p2.y = 0;
+	p3.x = 0; p3.y = 25;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	*/
+
+	p1.x = 30; p1.y = 0;
+	p2.x = 55; p2.y = 0;
+	p3.x = 55; p3.y = 25;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+
+	p1.x = 60; p1.y = 0;
+	p2.x = 85; p2.y = 0;
+	p3.x = 70; p3.y = 25;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 #endif
 
 //#if 0
@@ -184,10 +212,13 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		line2.z = triTranslated.p3.z - triTranslated.p1.z;
 
 		normal = CrossProduct_3D(line1, line2);
+		// TODO: implement dot-product, and proper rendering decision
+		// based on a proper camera. For now, we are just comparing
+		// the z-component of the normal
 
-		if( normal.x * (triTranslated.p1.x - vCamera.x) + 
+		if( (normal.x * (triTranslated.p1.x - vCamera.x) + 
 			normal.y * (triTranslated.p1.y - vCamera.y) + 
-			normal.z * (triTranslated.p1.z - vCamera.z) < 0.0f)
+			normal.z * (triTranslated.p1.z - vCamera.z)) < 0.0f)
 		{
 			// Rasterize triangle -- note, we need 2D triangles
 			// TODO: update this call once the camera has been implemented
@@ -202,6 +233,8 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 					  (((uint32_t)((WHITE & 0x0000ff) * -normal.z)) & 0xff) );
 			DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);			
 			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);
+			//DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);	
+			//FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);
 		}
 	}
 //#endif
