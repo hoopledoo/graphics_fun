@@ -72,6 +72,9 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
+
+// Code that tests out drawing a traingle outline, and filling boxes with 
+// progressively darker shades of WHITE
 #if 0
 	Point_2D a, b, c;
 	a.x = 0.0f; a.y = 0.0f;
@@ -113,35 +116,51 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	// and then shift and OR them together
 #endif
 
-#if 0
+// Code that tests out filling individual triangles
+//#if 0
 	// Here. we've identified an issue where the ordering of the points matters
 	// although it really shouldn't!
 	Point_2D p1,p2,p3;
 	p1.x = 25; p1.y = 0;
-	p2.x = 0; p2.y = 0;
-	p3.x = 0; p3.y = 25;
+	p2.x = 0; p2.y = 15;
+	p3.x = 10; p3.y = 30;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
-
-
-	/*
-	p1.x = 0; p1.y = 0;
-	p2.x = 25; p2.y = 0;
-	p3.x = 0; p3.y = 25;
-	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
-	*/
 
 	p1.x = 30; p1.y = 0;
-	p2.x = 55; p2.y = 0;
-	p3.x = 55; p3.y = 25;
+	p2.x = 55; p2.y = 11;
+	p3.x = 20; p3.y = 25;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 
 	p1.x = 60; p1.y = 0;
-	p2.x = 85; p2.y = 0;
+	p2.x = 100; p2.y = 3;
 	p3.x = 70; p3.y = 25;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
-#endif
 
-//#if 0
+
+	p1.x = 0; p1.y = 35;
+	p2.x = 25; p2.y = 40;
+	p3.x = 10; p3.y = 55;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+
+	if(GlobalRotating)
+	{
+		fTheta += 1.0f * (delta_time / (1000 * 1000));
+	}
+
+	p1.x = 200; p1.y = 0;
+	p2.x = 225 + 100*cosf(fTheta); p2.y = 100.8f;
+	p3.x = 245; p3.y = 155+100*sinf(fTheta);
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+
+	p1.x = 200+150*cosf(fTheta); p1.y = 400+150*sinf(fTheta);
+	p2.x = 150; p2.y = 305;
+	p3.x = 290; p3.y = 350;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+
+//#endif
+
+// Drawing a rotating cube
+#if 0
 	// Set up rotation matrices
 	real32 matRotZ[4][4] = {0};
 	real32 matRotX[4][4] = {0};
@@ -150,7 +169,6 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	{
 		fTheta += 1.0f * (delta_time / (1000 * 1000));
 	}
-	
 
 	// These rotation matrices are place-holders to help demonstrate
 	// 3D functionality, before we've implemented the camera
@@ -231,13 +249,11 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 			color = ( (((uint32_t)((WHITE & 0xff0000 >> 4) * -normal.z) << 4) & 0xff0000) |
 					  (((uint32_t)((WHITE & 0x00ff00 >> 2) * -normal.z) << 2) & 0x00ff00) |
 					  (((uint32_t)((WHITE & 0x0000ff) * -normal.z)) & 0xff) );
-			DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);			
+			//DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);			
 			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);
-			//DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);	
-			//FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, WHITE);
 		}
 	}
-//#endif
+#endif
 
 	// This is called 'per-frame'
 }

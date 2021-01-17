@@ -249,8 +249,11 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 		curPoint1.x = flattop_start.x;
 		curPoint2.x = flattop_start.x;
 
-		// Round our ending y up if we need to - this doesn't give us the result we want
-		//if (((int)flattop_end1.y) < ((int)(flattop_end1.y + 0.5f))) { flattop_end1.y = flattop_end1.y + 0.5f; }
+		// Round our ending point up
+		if((int)flattop_end1.y != (int)(flattop_end1.y+0.5f))
+		{
+			//flattop_end1.y += 0.5f;
+		}
 
 		for(real32 y = flattop_start.y; y < flattop_end1.y; y++)
 		{
@@ -271,7 +274,9 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 		curPoint1.x = flatbottom_start.x;
 		curPoint2.x = flatbottom_start.x;
 
-		for(real32 y = flatbottom_start.y; y > flatbottom_end1.y; y--)
+		// To prevent a split in the triangle, we want to ensure that we go all the way
+		// to the end of the flattop triangle
+		for(real32 y = flatbottom_start.y; y >= flatbottom_end1.y; y--)
 		{
 			curPoint1.y = y;
 			curPoint2.y = y;
