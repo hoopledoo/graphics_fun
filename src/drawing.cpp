@@ -4,8 +4,8 @@ internal void
 DrawPixel(game_offscreen_buffer *Buffer, real32 x, real32 y, uint32_t color)
 {
 	if (x < 0 || y < 0 || x >= Buffer->Width || y >= Buffer->Height) return;
-	uint8_t *Row = (uint8_t *)(Buffer->Memory) + ((int)y * (Buffer->Pitch));
-	uint32_t *Pixel = (uint32_t *)Row + (int)x;
+	uint8_t *Row = (uint8_t *)(Buffer->Memory) + (ROUND_INT(y) * (Buffer->Pitch));
+	uint32_t *Pixel = (uint32_t *)Row + ROUND_INT(x);
     *Pixel = color;
 }
 
@@ -59,8 +59,8 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		if(end_y < 0) {end_y = 0.0f;}
 		else if (end_y >= Buffer->Height) {end_y = (real32)(Buffer->Height - 1);}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)y * Buffer->Pitch);
-		Row = (uint8_t *)((uint32_t *)Row + (int)p1.x);
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (ROUND_INT(y) * Buffer->Pitch);
+		Row = (uint8_t *)((uint32_t *)Row + ROUND_INT(p1.x));
 		for(; y < end_y; ++y)
 		{
 			*(uint32_t *)Row = color;
@@ -81,8 +81,8 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		if(end_x < 0) {end_x = 0.0f;}
 		else if (end_x >= Buffer->Width) {end_x = (real32)(Buffer->Width - 1);}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)p1.y * Buffer->Pitch);
-		uint32_t *Pixel = (uint32_t *)Row + (int)x;
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (ROUND_INT(p1.y) * Buffer->Pitch);
+		uint32_t *Pixel = (uint32_t *)Row + ROUND_INT(x);
 		for(; x < end_x; ++x)
 		{
 			*Pixel = color;

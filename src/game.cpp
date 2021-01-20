@@ -147,8 +147,13 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		fTheta += 1.0f * (delta_time / (1000 * 1000));
 	}
 
-	p1.x = 200; p1.y = 0;
-	p2.x = 225 + 100*cosf(fTheta); p2.y = 100.8f;
+	p1.x = 700.06f; p1.y = 35.213f + 15.6f*sinf(fTheta);
+	p2.x = 800.231f; p2.y = 65.06f + 51.6f*sinf(fTheta);
+	p3.x = 750.2931f; p3.y = 95.23959f + 35.6f*sinf(fTheta);
+	FillTriangle_2D(Buffer, p1, p2, p3, YELLOW);
+
+	p1.x = 200+50*cosf(fTheta); p1.y = 0;
+	p2.x = 225 + 100*cosf(fTheta); p2.y = 100.83657362f;
 	p3.x = 245; p3.y = 155+100*sinf(fTheta);
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 
@@ -157,6 +162,10 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	p3.x = 290; p3.y = 350;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 
+	p1.x = 500; p1.y = 100;
+	p2.x = 551/*+100*cosf(fTheta)*/; p2.y = 250+150*sinf(fTheta);
+	p3.x = 501+100*cosf(fTheta); p3.y = 350;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 //#endif
 
 // Drawing a rotating cube

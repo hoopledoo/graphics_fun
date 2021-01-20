@@ -13,6 +13,7 @@
 #define YELLOW 0xffff00
 
 #define ABS(N) ((N<0)?(-N):(N))
+#define ROUND_INT(x) ((((int)(x))<=((int)((x)+0.5f)))?((int)(x)):((int)((x)+0.5f)))
 
 typedef struct Point_2D
 {
