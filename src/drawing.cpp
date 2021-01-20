@@ -169,6 +169,11 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 {
 	// TODO: determine why the naive method includes horizontal line gaps when drawing both 
 	// parts of the triangle, which occurs consistently but only with certain triangles
+	// ANSWER - the gaps show up because we are using a floating point system
+	// The best solution is likely to round floating point values to integer values
+	// and do the remainder of our work with integers!
+	// This update is quite involved, but it should be done because we can never draw a "part" of a pixel.
+	// We're not getting that advanced ;)
 
 	// TODO: migrate to a new method using Bresenham's algorithm (the current naive 
 	// method contains glitching lines because it imperfectly steps through)
