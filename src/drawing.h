@@ -11,15 +11,22 @@
 #define BLACK 0x000000 
 #define WHITE 0xffffff
 #define YELLOW 0xffff00
+#define PURPLE 0xf800f0
 
 #define ABS(N) ((N<0)?(-N):(N))
 #define ROUND_INT(x) ((((int)(x))<=((int)((x)+0.5f)))?((int)(x)):((int)((x)+0.5f)))
 
-typedef struct Point_2D
+typedef struct Point_2D_Real
 {
     real32 x;
     real32 y; 
-} Point_2D;
+} Point_2D_Real;
+
+typedef struct Point_2D_Int
+{
+    int32_t x;
+    int32_t y; 
+} Point_2D_Int;
 
 typedef struct Point_3D
 {
@@ -35,12 +42,19 @@ typedef struct Vec3D
     real32 z;
 } Vec3D;
 
-typedef struct Triangle_2D
+typedef struct Triangle_2D_Real
 {
-	Point_2D p1;
-	Point_2D p2;
-	Point_2D p3;
-} Triangle_2D;
+	Point_2D_Real p1;
+	Point_2D_Real p2;
+	Point_2D_Real p3;
+} Triangle_2D_Real;
+
+typedef struct Triangle_2D_Int
+{
+	Point_2D_Int p1;
+	Point_2D_Int p2;
+	Point_2D_Int p3;
+} Triangle_2D_Int;
 
 typedef struct Triangle_3D
 {
@@ -57,26 +71,25 @@ typedef struct Mesh
 	Point_3D scale = {0};
 } Mesh;
 
-typedef struct LineInfo
-{
-	Point_2D start;
-	Point_2D end;
-	bool32 horizontal;
-	bool32 vertical;
-	bool32 shallow;
-	real32 increment;
-	real32 run_threshold;
-} LineInfo;
-
 internal void MatrixVecMult(Point_3D *out_point, Point_3D *in_point, real32 m[4][4]);
 
-internal void DrawPixel(game_offscreen_buffer *Buffer, real32 x, real32 y, uint32_t color);
-internal void DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color);
-internal void DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color);
+internal void DrawPixel(game_offscreen_buffer *Buffer, int32_t x, int32_t y, uint32_t color);
+internal void DrawPixel(game_offscreen_buffer *Buffer, Point_2D_Int p, uint32_t color);
+
+internal void DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, uint32_t color);
+internal void DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, uint32_t color);
+
+internal void DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, Point_2D_Real p3, uint32_t color);
+internal void DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, Point_2D_Int p3, uint32_t color);
+
 internal void DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color);
 
+internal void FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, Point_2D_Real p3, uint32_t color);
+internal void FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, Point_2D_Int p3, uint32_t color);
 
-internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color);
+internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, uint32_t color);
+internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, uint32_t color);
+
 internal void FillColor(game_offscreen_buffer *Buffer, uint32_t color);
 
 

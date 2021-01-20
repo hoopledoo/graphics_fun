@@ -64,63 +64,56 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 	initialized = true;
 }
 
-internal void 
-GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time)
+internal void
+DrawBoxes(game_offscreen_buffer *Buffer)
 {
-	// We should do some better initialization
-	if(!initialized) {Init(Memory, Buffer);}
-
-	// These are just some test drawings to make sure our drawing functionality works!
-	FillColor(Buffer, BLACK);
-
-// Code that tests out drawing a traingle outline, and filling boxes with 
-// progressively darker shades of WHITE
-#if 0
-	Point_2D a, b, c;
+	Point_2D_Real a, b, c;
 	a.x = 0.0f; a.y = 0.0f;
 	b.x = 0.0f; b.y = 100.0f;
 	c.x = 100.0f; c.y = 100.0f;
 	DrawTriangle_2D(Buffer, a, b, c, WHITE);
 
-	Point_2D d,e;
+	Point_2D_Real d,e;
 	d.x = 0.0f; d.y=25.0f;
 	e.x = 25.0f; e.y=50.0f;
 	FillRect_2D(Buffer, d,e, 0xffffff);
 
-	Point_2D f,g;
+	Point_2D_Real f,g;
 	f.x = 35.0f; f.y=25.0f;
 	g.x = 60.0f; g.y=50.0f;
 	FillRect_2D(Buffer, f, g, 0xefefef);
 
-	Point_2D h,i;
+	Point_2D_Real h,i;
 	h.x = 70.0f; h.y=25.0f;
 	i.x = 95.0f; i.y=50.0f;
 	FillRect_2D(Buffer, h, i, 0xdfdfdf);
 
-	Point_2D j,k;
+	Point_2D_Real j,k;
 	j.x = 105.0f; j.y=25.0f;
 	k.x = 130.0f; k.y=50.0f;
 	FillRect_2D(Buffer, j, k, 0xcfcfcf);
 
-	Point_2D l,m;
+	Point_2D_Real l,m;
 	l.x = 140.0f; l.y=25.0f;
 	m.x = 165.0f; m.y=50.0f;
 	FillRect_2D(Buffer, l, m, 0xbfbfbf);
 
-	Point_2D n,o;
+	Point_2D_Real n,o;
 	n.x = 175.0f; n.y=25.0f;
 	o.x = 200.0f; o.y=50.0f;
 	FillRect_2D(Buffer, n, o, 0xafafaf);
 
 	// To create darker shades of gray, we just need to multiple 0xff by some scale, 
-	// and then shift and OR them together
-#endif
+	// and then shift and OR them together	
+}
 
-// Code that tests out filling individual triangles
-//#if 0
+internal void
+DrawTriangles(game_offscreen_buffer *Buffer)
+{
+	// Code that tests out filling individual triangles
 	// Here. we've identified an issue where the ordering of the points matters
 	// although it really shouldn't!
-	Point_2D p1,p2,p3;
+	Point_2D_Real p1,p2,p3;
 	p1.x = 25; p1.y = 0;
 	p2.x = 0; p2.y = 15;
 	p3.x = 10; p3.y = 30;
@@ -142,11 +135,6 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	p3.x = 10; p3.y = 55;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 
-	if(GlobalRotating)
-	{
-		fTheta += 1.0f * (delta_time / (1000 * 1000));
-	}
-
 	p1.x = 700.06f; p1.y = 35.213f + 15.6f*sinf(fTheta);
 	p2.x = 800.231f; p2.y = 65.06f + 51.6f*sinf(fTheta);
 	p3.x = 750.2931f; p3.y = 95.23959f + 35.6f*sinf(fTheta);
@@ -165,19 +153,15 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	p1.x = 500; p1.y = 100;
 	p2.x = 551/*+100*cosf(fTheta)*/; p2.y = 250+150*sinf(fTheta);
 	p3.x = 501+100*cosf(fTheta); p3.y = 350;
-	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
-//#endif
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);	
+}
 
-// Drawing a rotating cube
-#if 0
+internal void
+DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
+{
 	// Set up rotation matrices
 	real32 matRotZ[4][4] = {0};
 	real32 matRotX[4][4] = {0};
-
-	if(GlobalRotating)
-	{
-		fTheta += 1.0f * (delta_time / (1000 * 1000));
-	}
 
 	// These rotation matrices are place-holders to help demonstrate
 	// 3D functionality, before we've implemented the camera
@@ -255,14 +239,30 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 			// TODO: implement proper lighting and camera effects. For now, we're just scaling
 			// the brightness of the white based on the calculated z component of the normal vector
 			// for each triangle (our light source is 0,0,1)
-			color = ( (((uint32_t)((WHITE & 0xff0000 >> 4) * -normal.z) << 4) & 0xff0000) |
-					  (((uint32_t)((WHITE & 0x00ff00 >> 2) * -normal.z) << 2) & 0x00ff00) |
-					  (((uint32_t)((WHITE & 0x0000ff) * -normal.z)) & 0xff) );
+			color = ( (((uint32_t)((base_color & 0xff0000 >> 4) * -normal.z) << 4) & 0xff0000) |
+					  (((uint32_t)((base_color & 0x00ff00 >> 2) * -normal.z) << 2) & 0x00ff00) |
+					  (((uint32_t)((base_color & 0x0000ff) * -normal.z)) & 0xff) );
 			//DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);			
 			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);
 		}
+	}	
+}
+
+internal void 
+GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time)
+{
+	// We should do some better initialization
+	if(!initialized) {Init(Memory, Buffer);}
+
+	// These are just some test drawings to make sure our drawing functionality works!
+	FillColor(Buffer, BLACK);
+
+	if(GlobalRotating)
+	{
+		fTheta += 1.0f * (delta_time / (1000 * 1000));
 	}
-#endif
+
+	DrawCube(Buffer, GREEN);
 
 	// This is called 'per-frame'
 }

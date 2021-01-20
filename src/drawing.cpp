@@ -1,12 +1,19 @@
 #include "drawing.h"
 
+// Enforce strictly printing pixels by integer coordinates
 internal void
-DrawPixel(game_offscreen_buffer *Buffer, real32 x, real32 y, uint32_t color)
+DrawPixel(game_offscreen_buffer *Buffer, int32_t x, int32_t y, uint32_t color)
 {
 	if (x < 0 || y < 0 || x >= Buffer->Width || y >= Buffer->Height) return;
-	uint8_t *Row = (uint8_t *)(Buffer->Memory) + (ROUND_INT(y) * (Buffer->Pitch));
-	uint32_t *Pixel = (uint32_t *)Row + ROUND_INT(x);
+	uint8_t *Row = (uint8_t *)(Buffer->Memory) + (y * (Buffer->Pitch));
+	uint32_t *Pixel = (uint32_t *)Row + x;
     *Pixel = color;
+}
+
+internal void 
+DrawPixel(game_offscreen_buffer *Buffer, Point_2D_Int p, uint32_t color)
+{
+	DrawPixel(Buffer, p.x, p.y, color);
 }
 
 internal void
@@ -37,10 +44,21 @@ CrossProduct_3D(Vec3D v1, Vec3D v2)
 	return normal;
 }
 
+// Convert to Integer-based Points before drawing the line
 internal void
-DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
+DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_Real p2_real, uint32_t color)
 {
-	real32 x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;
+	Point_2D_Int p1,p2;
+	p1.x = ROUND_INT(p1_real.x); p1.y = ROUND_INT(p1_real.y);
+	p2.x = ROUND_INT(p2_real.x); p2.y = ROUND_INT(p2_real.y);
+	DrawLine_2D(Buffer, p1, p2, color);
+}
+
+// Drawing with Integer-based Points
+internal void
+DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, uint32_t color)
+{
+	int32_t x, y, dx, dy, abs_dx, abs_dy, px, py, end_x, end_y, yi, xi, D;
 	
 	dx = p2.x-p1.x;
 	dy = p2.y-p1.y;
@@ -53,14 +71,14 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		else {y=p1.y; end_y=p2.y;}
 
 		// Clip the lines at the boundaries of the window height
-		if(y < 0) {y = 0.0f;}
-		else if (y >= Buffer->Height) {y = (real32)(Buffer->Height - 1);}
+		if(y < 0) {y = 0;}
+		else if (y >= Buffer->Height) {y = (Buffer->Height - 1);}
 
-		if(end_y < 0) {end_y = 0.0f;}
-		else if (end_y >= Buffer->Height) {end_y = (real32)(Buffer->Height - 1);}
+		if(end_y < 0) {end_y = 0;}
+		else if (end_y >= Buffer->Height) {end_y = (Buffer->Height - 1);}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + (ROUND_INT(y) * Buffer->Pitch);
-		Row = (uint8_t *)((uint32_t *)Row + ROUND_INT(p1.x));
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (y * Buffer->Pitch);
+		Row = (uint8_t *)((uint32_t *)Row + p1.x);
 		for(; y < end_y; ++y)
 		{
 			*(uint32_t *)Row = color;
@@ -75,14 +93,14 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 		else {x=p1.x; end_x=p2.x;}
 
 		// Clip the lines at the boundaries of the window width
-		if(x < 0) {x = 0.0f;}
-		else if (x >= Buffer->Width) {x = (real32)(Buffer->Width - 1);}
+		if(x < 0) {x = 0;}
+		else if (x >= Buffer->Width) {x = (Buffer->Width - 1);}
 
-		if(end_x < 0) {end_x = 0.0f;}
-		else if (end_x >= Buffer->Width) {end_x = (real32)(Buffer->Width - 1);}
+		if(end_x < 0) {end_x = 0;}
+		else if (end_x >= Buffer->Width) {end_x = (Buffer->Width - 1);}
 
-		uint8_t *Row = (uint8_t *)Buffer->Memory + (ROUND_INT(p1.y) * Buffer->Pitch);
-		uint32_t *Pixel = (uint32_t *)Row + ROUND_INT(x);
+		uint8_t *Row = (uint8_t *)Buffer->Memory + (p1.y * Buffer->Pitch);
+		uint32_t *Pixel = (uint32_t *)Row + x;
 		for(; x < end_x; ++x)
 		{
 			*Pixel = color;
@@ -147,17 +165,38 @@ DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 }
 
 internal void
-DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color)
+DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_Real p2_real, Point_2D_Real p3_real, uint32_t color)
 {
+	//Convert to Integer-based Points first
+	Point_2D_Int p1, p2, p3;
+	p1.x = ROUND_INT(p1_real.x); p1.y = ROUND_INT(p1_real.y);
+	p2.x = ROUND_INT(p2_real.x); p2.y = ROUND_INT(p2_real.y);
+	p3.x = ROUND_INT(p3_real.x); p3.y = ROUND_INT(p3_real.y);
+
 	DrawLine_2D(Buffer, p1, p2, color);
 	DrawLine_2D(Buffer, p2, p3, color);
 	DrawLine_2D(Buffer, p3, p1, color);
 }
 
 internal void
-AdvanceAlongLine(Point_2D start, Point_2D end)
+DrawTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, Point_2D_Int p3, uint32_t color)
 {
-	
+	DrawLine_2D(Buffer, p1, p2, color);
+	DrawLine_2D(Buffer, p2, p3, color);
+	DrawLine_2D(Buffer, p3, p1, color);
+}
+
+
+internal void
+FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_Real p2_real, Point_2D_Real p3_real, uint32_t color)
+{
+	//Convert to Integer-based Points first (this is effectively to round it and eliminate the gap line we were seeing)
+	Point_2D_Int p1, p2, p3;
+	p1.x = ROUND_INT(p1_real.x); p1.y = ROUND_INT(p1_real.y);
+	p2.x = ROUND_INT(p2_real.x); p2.y = ROUND_INT(p2_real.y);
+	p3.x = ROUND_INT(p3_real.x); p3.y = ROUND_INT(p3_real.y);
+
+	FillTriangle_2D(Buffer, p1, p2, p3, color);
 }
 
 // We'll use Bresenham's algorithm again. Essentially, we'll step through one line until there's been a change
@@ -165,22 +204,21 @@ AdvanceAlongLine(Point_2D start, Point_2D end)
 // Once there has been a change in both y's, we'll draw a horizontal line between the two.
 // We'll continue until we reach the end of the lines
 internal void
-FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2D p3, uint32_t color)
+FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1_int, Point_2D_Int p2_int, Point_2D_Int p3_int, uint32_t color)
 {
-	// TODO: determine why the naive method includes horizontal line gaps when drawing both 
-	// parts of the triangle, which occurs consistently but only with certain triangles
-	// ANSWER - the gaps show up because we are using a floating point system
-	// The best solution is likely to round floating point values to integer values
-	// and do the remainder of our work with integers!
-	// This update is quite involved, but it should be done because we can never draw a "part" of a pixel.
-	// We're not getting that advanced ;)
+	// We need to work in real coordinates, but we want to make sure everything was rounded first
+	// here, we'll convert back to floating point
+	Point_2D_Real p1, p2, p3;
+	p1.x = (real32)p1_int.x; p1.y = (real32)p1_int.y;
+	p2.x = (real32)p2_int.x; p2.y = (real32)p2_int.y;
+	p3.x = (real32)p3_int.x; p3.y = (real32)p3_int.y;
 
 	// TODO: migrate to a new method using Bresenham's algorithm (the current naive 
 	// method contains glitching lines because it imperfectly steps through)
 
 	// We first need to find if this is a flat-top, flat-bottom, or if we need to split it
 	real32 dy_p1p2, dy_p1p3, dy_p2p3, dx_p1p2, dx_p1p3, dx_p2p3;
-	Point_2D flattop_start, flattop_end1, flattop_end2, flatbottom_start, flatbottom_end1, flatbottom_end2;
+	Point_2D_Real flattop_start, flattop_end1, flattop_end2, flatbottom_start, flatbottom_end1, flatbottom_end2;
 	bool32 flattop = false;
 	bool32 flatbottom = false;
 
@@ -218,7 +256,7 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	else 
 	{
 		// First, Identify the top-most, middle, and bottom-most points
-		Point_2D top_point, middle_point, bottom_point, p4;
+		Point_2D_Real top_point, middle_point, bottom_point, p4;
 
 		// TODO: improve how we're sorting these points
 		if( p1.y > p2.y && p2.y > p3.y ) { top_point = p1; middle_point = p2; bottom_point = p3; }
@@ -246,19 +284,12 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 	// Here we need to actually draw the flattop & flatbottom triangles
 	if(flattop)
 	{
-
 		real32 invslope1 = (flattop_end1.x - flattop_start.x) / (flattop_end1.y - flattop_start.y);
 		real32 invslope2 = (flattop_end2.x - flattop_start.x) / (flattop_end2.y - flattop_start.y);
 
-		Point_2D curPoint1, curPoint2;
+		Point_2D_Real curPoint1, curPoint2;
 		curPoint1.x = flattop_start.x;
 		curPoint2.x = flattop_start.x;
-
-		// Round our ending point up
-		if((int)flattop_end1.y != (int)(flattop_end1.y+0.5f))
-		{
-			//flattop_end1.y += 0.5f;
-		}
 
 		for(real32 y = flattop_start.y; y < flattop_end1.y; y++)
 		{
@@ -275,7 +306,7 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, Point_2
 		real32 invslope1 = (flatbottom_start.x - flatbottom_end1.x) / (flatbottom_start.y - flatbottom_end1.y);
 		real32 invslope2 = (flatbottom_start.x - flatbottom_end2.x) / (flatbottom_start.y - flatbottom_end2.y);
 
-		Point_2D curPoint1, curPoint2;
+		Point_2D_Real curPoint1, curPoint2;
 		curPoint1.x = flatbottom_start.x;
 		curPoint2.x = flatbottom_start.x;
 
@@ -299,7 +330,7 @@ internal void
 DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color)
 {
 	Triangle_3D triProjected = {0};
-	Triangle_2D triProjected_2D = {0};
+	Triangle_2D_Real triProjected_2D = {0};
 
 	// Project triangles from 3D --> 2D
 	MatrixVecMult(&triProjected.p1, &p1, projMatrix);
@@ -325,7 +356,7 @@ internal void
 FillTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3D p3, real32 projMatrix[4][4], uint32_t color)
 {
 	Triangle_3D triProjected = {0};
-	Triangle_2D triProjected_2D = {0};
+	Triangle_2D_Real triProjected_2D = {0};
 
 	// Project triangles from 3D --> 2D
 	MatrixVecMult(&triProjected.p1, &p1, projMatrix);
@@ -348,9 +379,18 @@ FillTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3
 }
 
 internal void
-FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t color)
+FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_Real p2_real, uint32_t color)
 {
-   	real32 dx, dy, x, y, start_x, start_y, end_x, end_y;
+	Point_2D_Int p1,p2;
+	p1.x = ROUND_INT(p1_real.x); p1.y = ROUND_INT(p1_real.y);
+	p2.x = ROUND_INT(p2_real.x); p2.y = ROUND_INT(p2_real.y);
+	FillRect_2D(Buffer, p1, p2, color);	
+}
+
+internal void
+FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, uint32_t color)
+{
+   	int32_t dx, dy, x, y, start_x, start_y, end_x, end_y;
    	dx = p2.x-p1.x;
 	dy = p2.y-p1.y;
 
@@ -361,11 +401,11 @@ FillRect_2D(game_offscreen_buffer *Buffer, Point_2D p1, Point_2D p2, uint32_t co
 	if(dy < 0) {start_y=p2.y; end_y=p1.y;}
 	else {start_y=p1.y; end_y=p2.y;}
 
-    uint8_t *Row = (uint8_t *)Buffer->Memory + ((int)start_y * Buffer->Pitch); // get a byte pointer to memory
+    uint8_t *Row = (uint8_t *)Buffer->Memory + (start_y * Buffer->Pitch); // get a byte pointer to memory
 
     for(y=start_y; y<end_y; ++y)
     {
-        uint32_t *Pixel = (uint32_t *)Row + (int)start_x; // point to the start of the row
+        uint32_t *Pixel = (uint32_t *)Row + start_x; // point to the start of the row
         for(x=start_x; x<end_x; ++x)
         {
             *Pixel++ = color;
