@@ -14,7 +14,7 @@
 #define PURPLE 0xf800f0
 
 #define ABS(N) ((N<0)?(-N):(N))
-#define ROUND_INT(x) ((((int)(x))<=((int)((x)+0.5f)))?((int)(x)):((int)((x)+0.5f)))
+#define ROUND_INT(x) ((((int)(x))<((int)((x)+0.5f)))?((int)(x)):((int)((x)+0.5f)))
 
 typedef struct Point_2D_Real
 {
@@ -86,6 +86,11 @@ internal void DrawTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_
 
 internal void FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, Point_2D_Real p3, uint32_t color);
 internal void FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, Point_2D_Int p3, uint32_t color);
+
+internal void FillFlatTopBresenham(game_offscreen_buffer *Buffer, Point_2D_Int start, Point_2D_Int end1, Point_2D_Int end2, uint32_t color);
+internal void FillFlatTopBresenham(game_offscreen_buffer *Buffer, Point_2D_Real start, Point_2D_Real end1, Point_2D_Real end2, uint32_t color);
+internal void FillFlatBottomBresenham(game_offscreen_buffer *Buffer, Point_2D_Int start, Point_2D_Int end1, Point_2D_Int end2, uint32_t color);
+internal void FillFlatBottomBresenham(game_offscreen_buffer *Buffer, Point_2D_Real start, Point_2D_Real end1, Point_2D_Real end2, uint32_t color);
 
 internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, uint32_t color);
 internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, uint32_t color);

@@ -199,6 +199,280 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_R
 	FillTriangle_2D(Buffer, p1, p2, p3, color);
 }
 
+internal void
+FillFlatTopNaive(game_offscreen_buffer *Buffer, 
+			Point_2D_Real flattop_start, Point_2D_Real flattop_end1, Point_2D_Real flattop_end2,
+			uint32_t color)
+{
+	real32 invslope1 = (flattop_end1.x - flattop_start.x) / (flattop_end1.y - flattop_start.y);
+	real32 invslope2 = (flattop_end2.x - flattop_start.x) / (flattop_end2.y - flattop_start.y);
+
+	Point_2D_Real curPoint1, curPoint2;
+	curPoint1.x = flattop_start.x;
+	curPoint2.x = flattop_start.x;
+
+	for(real32 y = flattop_start.y; y < flattop_end1.y; y++)
+	{
+		curPoint1.y = y;
+		curPoint2.y = y;
+		DrawLine_2D(Buffer, curPoint1, curPoint2, color);
+		curPoint1.x += invslope1;
+		curPoint2.x += invslope2;
+	}
+}
+
+// We need to convert the points from Real to Int first
+internal void
+FillFlatTopBresenham(game_offscreen_buffer *Buffer, 
+			Point_2D_Real start, Point_2D_Real end1, Point_2D_Real end2,
+			uint32_t color)
+{
+	Point_2D_Int p1, p2, p3;
+	p1.x = ROUND_INT(start.x); p1.y = ROUND_INT(start.y);
+	p2.x = ROUND_INT(end1.x); p2.y = ROUND_INT(end1.y);
+	p3.x = ROUND_INT(end2.x); p3.y = ROUND_INT(end2.y);
+
+	FillFlatTopBresenham(Buffer, p1, p2, p3, color);
+}
+
+// We know that the y-value will be increasing from start -> end1 and end2
+// We only need to handle the top 2 quadrants
+internal void
+FillFlatTopBresenham(game_offscreen_buffer *Buffer, 
+			Point_2D_Int start, Point_2D_Int end1, Point_2D_Int end2,
+			uint32_t color)
+{
+	int32_t line1_dx, line2_dx, line1_abs_dx, line2_abs_dx, dy;
+	int32_t line1_px, line1_py, line2_px, line2_py, line1_xi, line2_xi;
+	int32_t line1x, line2x, y;
+	Point_2D_Int p1, p2;
+
+	// initialize line-walkers
+	y = start.y; line1x = start.x; line2x = start.x;
+
+	// calculate the deltas
+	dy = end1.y - start.y;
+	line1_dx = end1.x - start.x; line1_abs_dx = ABS(line1_dx);
+	line2_dx = end2.x - start.x; line2_abs_dx = ABS(line2_dx);
+
+	// Calculate the bresenham error values
+	line1_py = 2*line1_abs_dx - dy;
+	line2_py = 2*line2_abs_dx - dy;
+	line1_px = 2*dy - line1_abs_dx;
+	line2_px = 2*dy - line2_abs_dx;
+
+	// Update the x incrementer based on the line's x delta
+	if(line1_dx < 0) line1_xi = -1;
+	else line1_xi = 1;
+	if(line2_dx < 0) line2_xi = -1;
+	else line2_xi = 1;
+	DrawPixel(Buffer, start.x, start.y, color);
+
+	while(y < end1.y){
+		//--------------- walk line 1 -----------------------
+
+		// ensure it's not a vertical line
+		if(line1_dx !=0){
+
+			// handle steep line2
+			if(line1_abs_dx <= dy){
+				if(line1_py < 0){
+					line1_py = line1_py + 2*line1_abs_dx;
+				}
+				else{
+					line1x = line1x + line1_xi;
+					line1_py = line1_py + 2*(line1_abs_dx - dy);
+				}
+			}
+
+			// handle shallow line1
+			else{
+				line1x = line1x + line1_xi;
+
+				while(line1_px <= 0){
+					line1x = line1x + line1_xi;
+					line1_px = line1_px + 2*dy;
+				}
+
+				line1_px = line1_px + 2*(dy - line1_abs_dx);
+			}
+		}
+
+		//--------------- walk line 2 -----------------------
+
+		// ensure it's not a vertical line
+		if(line2_dx !=0){
+
+			// handle steep line2
+			if(line2_abs_dx <= dy){
+				if(line2_py < 0){
+					line2_py = line2_py + 2*line2_abs_dx;
+				}
+				else{
+					line2x = line2x + line2_xi;
+					line2_py = line2_py + 2*(line2_abs_dx - dy);
+				}
+			}
+
+			// handle shallow line2
+			else{
+				line2x = line2x + line2_xi;
+
+				while(line2_px <= 0){
+					line2x = line2x + line2_xi;
+					line2_px = line2_px + 2*dy;
+				}
+				
+				line2_px = line2_px + 2*(dy - line2_abs_dx);
+			}
+		}
+
+		// Step down
+		y++;
+		p1.x = line1x; p1.y = y;
+		p2.x = line2x; p2.y = y;
+		DrawLine_2D(Buffer, p1, p2, color);
+	}
+}
+
+internal void
+FillFlatBottomNaive(game_offscreen_buffer *Buffer,
+				Point_2D_Real flatbottom_start, Point_2D_Real flatbottom_end1, Point_2D_Real flatbottom_end2,
+				uint32_t color)
+{
+	real32 invslope1 = (flatbottom_start.x - flatbottom_end1.x) / (flatbottom_start.y - flatbottom_end1.y);
+	real32 invslope2 = (flatbottom_start.x - flatbottom_end2.x) / (flatbottom_start.y - flatbottom_end2.y);
+
+	Point_2D_Real curPoint1, curPoint2;
+	curPoint1.x = flatbottom_start.x;
+	curPoint2.x = flatbottom_start.x;
+
+	// To prevent a split in the triangle, we want to ensure that we go all the way
+	// to the end of the flattop triangle
+	for(real32 y = flatbottom_start.y; y >= flatbottom_end1.y; y--)
+	{
+		curPoint1.y = y;
+		curPoint2.y = y;
+		DrawLine_2D(Buffer, curPoint1, curPoint2, color);
+		curPoint1.x -= invslope1;
+		curPoint2.x -= invslope2;
+	}
+}
+
+// Convert points to integers, because Bresenham works on integers only
+internal void
+FillFlatBottomBresenham(game_offscreen_buffer *Buffer,
+				Point_2D_Real start, Point_2D_Real end1, Point_2D_Real end2,
+				uint32_t color)
+{
+	Point_2D_Int p1, p2, p3;
+	p1.x = ROUND_INT(start.x); p1.y = ROUND_INT(start.y);
+	p2.x = ROUND_INT(end1.x); p2.y = ROUND_INT(end1.y);
+	p3.x = ROUND_INT(end2.x); p3.y = ROUND_INT(end2.y);
+
+	FillFlatBottomBresenham(Buffer, p1, p2, p3, color);
+}
+
+// We know the y value will be decreasing from start -> end1 and end2
+// We only need to handle the bottom two quadrants
+internal void
+FillFlatBottomBresenham(game_offscreen_buffer *Buffer, 
+			Point_2D_Int start, Point_2D_Int end1, Point_2D_Int end2,
+			uint32_t color)
+{
+	int32_t line1_dx, line2_dx, line1_abs_dx, line2_abs_dx, dy;
+	int32_t line1_px, line1_py, line2_px, line2_py, line1_xi, line2_xi;
+	int32_t line1x, line2x, y;
+	Point_2D_Int p1, p2;
+
+	// initialize line-walkers
+	y = start.y; line1x = start.x; line2x = start.x;
+
+	// calculate the deltas
+	dy = start.y - end1.y;
+	line1_dx = end1.x - start.x; line1_abs_dx = ABS(line1_dx);
+	line2_dx = end2.x - start.x; line2_abs_dx = ABS(line2_dx);
+
+	// Calculate the bresenham error values
+	line1_py = 2*line1_abs_dx - dy;
+	line2_py = 2*line2_abs_dx - dy;
+	line1_px = 2*dy - line1_abs_dx;
+	line2_px = 2*dy - line2_abs_dx;
+
+	// Update the x incrementer based on the line's x delta
+	if(line1_dx < 0) line1_xi = -1;
+	else line1_xi = 1;
+	if(line2_dx < 0) line2_xi = -1;
+	else line2_xi = 1;
+	DrawPixel(Buffer, start.x, start.y, color);
+
+	while(y > end1.y){
+		//--------------- walk line 1 -----------------------
+
+		// ensure it's not a vertical line
+		if(line1_dx !=0){
+
+			// handle steep line2
+			if(line1_abs_dx <= dy){
+				if(line1_py < 0){
+					line1_py = line1_py + 2*line1_abs_dx;
+				}
+				else{
+					line1x = line1x + line1_xi;
+					line1_py = line1_py + 2*(line1_abs_dx - dy);
+				}
+			}
+
+			// handle shallow line1
+			else{
+				line1x = line1x + line1_xi;
+
+				while(line1_px <= 0){
+					line1x = line1x + line1_xi;
+					line1_px = line1_px + 2*dy;
+				}
+
+				line1_px = line1_px + 2*(dy - line1_abs_dx);
+			}
+		}
+
+		//--------------- walk line 2 -----------------------
+
+		// ensure it's not a vertical line
+		if(line2_dx !=0){
+
+			// handle steep line2
+			if(line2_abs_dx <= dy){
+				if(line2_py < 0){
+					line2_py = line2_py + 2*line2_abs_dx;
+				}
+				else{
+					line2x = line2x + line2_xi;
+					line2_py = line2_py + 2*(line2_abs_dx - dy);
+				}
+			}
+
+			// handle shallow line2
+			else{
+				line2x = line2x + line2_xi;
+
+				while(line2_px <= 0){
+					line2x = line2x + line2_xi;
+					line2_px = line2_px + 2*dy;
+				}
+				
+				line2_px = line2_px + 2*(dy - line2_abs_dx);
+			}
+		}
+
+		// Step down
+		y--;
+		p1.x = line1x; p1.y = y;
+		p2.x = line2x; p2.y = y;
+		DrawLine_2D(Buffer, p1, p2, color);
+	}
+}
+
 // We'll use Bresenham's algorithm again. Essentially, we'll step through one line until there's been a change
 // in y, then we'll step through the other until there's been a change in y.
 // Once there has been a change in both y's, we'll draw a horizontal line between the two.
@@ -284,43 +558,13 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1_int, Point_2D_Int
 	// Here we need to actually draw the flattop & flatbottom triangles
 	if(flattop)
 	{
-		real32 invslope1 = (flattop_end1.x - flattop_start.x) / (flattop_end1.y - flattop_start.y);
-		real32 invslope2 = (flattop_end2.x - flattop_start.x) / (flattop_end2.y - flattop_start.y);
-
-		Point_2D_Real curPoint1, curPoint2;
-		curPoint1.x = flattop_start.x;
-		curPoint2.x = flattop_start.x;
-
-		for(real32 y = flattop_start.y; y < flattop_end1.y; y++)
-		{
-			curPoint1.y = y;
-			curPoint2.y = y;
-			DrawLine_2D(Buffer, curPoint1, curPoint2, color);
-			curPoint1.x += invslope1;
-			curPoint2.x += invslope2;
-		}
+		FillFlatTopBresenham(Buffer, flattop_start, flattop_end1, flattop_end2, color);
+		DrawTriangle_2D(Buffer, flattop_start, flattop_end1, flattop_end2, color);
 	}
 	if(flatbottom)
 	{
-		//#if 0
-		real32 invslope1 = (flatbottom_start.x - flatbottom_end1.x) / (flatbottom_start.y - flatbottom_end1.y);
-		real32 invslope2 = (flatbottom_start.x - flatbottom_end2.x) / (flatbottom_start.y - flatbottom_end2.y);
-
-		Point_2D_Real curPoint1, curPoint2;
-		curPoint1.x = flatbottom_start.x;
-		curPoint2.x = flatbottom_start.x;
-
-		// To prevent a split in the triangle, we want to ensure that we go all the way
-		// to the end of the flattop triangle
-		for(real32 y = flatbottom_start.y; y >= flatbottom_end1.y; y--)
-		{
-			curPoint1.y = y;
-			curPoint2.y = y;
-			DrawLine_2D(Buffer, curPoint1, curPoint2, color);
-			curPoint1.x -= invslope1;
-			curPoint2.x -= invslope2;
-		}
-		//#endif
+		FillFlatBottomBresenham(Buffer, flatbottom_start, flatbottom_end1, flatbottom_end2, color);
+		DrawTriangle_2D(Buffer, flatbottom_start, flatbottom_end1, flatbottom_end2, color);
 	}
 
 }

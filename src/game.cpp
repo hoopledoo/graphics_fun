@@ -114,6 +114,65 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	// Here. we've identified an issue where the ordering of the points matters
 	// although it really shouldn't!
 	Point_2D_Real p1,p2,p3;
+
+
+	// Not problematic
+	p1.x = 150; p1.y = 100;
+	p2.x = 200; p2.y = 100;
+	p3.x = 120; p3.y = 0;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+	// Problematic (flattop triangle, goes too wide)
+	p1.x = 450; p1.y = 100;
+	p2.x = 400; p2.y = 100;
+	p3.x = 520; p3.y = 0;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+	// Illustrates the issue with a flattop triangle
+	p1.x = 700; p1.y = 95;
+	p2.x = 800; p2.y = 0;
+	p3.x = 900; p3.y = 95;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+	// Illustrates the issue with a flatbottom triangle
+	p1.x = 950; p1.y = 0;
+	p2.x = 1050; p2.y = 75;
+	p3.x = 1150; p3.y = 0;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+	// Problematic (flatbottom triangle, doesn't go wide enough)
+	p1.x = 250; p1.y = 10;
+	p2.x = 307; p2.y = 70;
+	p3.x = 178; p3.y = 150;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+	// Problematic (flatbottom triangle, doesn't go wide enough)
+	p1.x = 75; p1.y = 200;
+	p2.x = 0; p2.y = 300;
+	p3.x = 150; p3.y = 400;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+/*
+	p1.x = 0; p1.y = 100;
+	p2.x = 0; p2.y = 200;
+	p3.x = 100; p3.y = 100;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+
+	p1.x = 300; p1.y = 200;
+	p2.x = 250; p2.y = 400;
+	p3.x = 200; p3.y = 300;
+	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
+	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
+*/
+
+//#if 0
 	p1.x = 25; p1.y = 0;
 	p2.x = 0; p2.y = 15;
 	p3.x = 10; p3.y = 30;
@@ -154,6 +213,7 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	p2.x = 551/*+100*cosf(fTheta)*/; p2.y = 250+150*sinf(fTheta);
 	p3.x = 501+100*cosf(fTheta); p3.y = 350;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);	
+//#endif
 }
 
 internal void
@@ -257,13 +317,14 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
 
+
 	if(GlobalRotating)
 	{
 		fTheta += 1.0f * (delta_time / (1000 * 1000));
 	}
 
 	DrawTriangles(Buffer);
-	DrawCube(Buffer, PURPLE);
+	DrawCube(Buffer, WHITE);
 
 	// This is called 'per-frame'
 }
