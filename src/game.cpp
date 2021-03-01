@@ -301,7 +301,8 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 			// for each triangle (our light source is 0,0,1)
 			color = ( (((uint32_t)((base_color & 0xff0000 >> 4) * -normal.z) << 4) & 0xff0000) |
 					  (((uint32_t)((base_color & 0x00ff00 >> 2) * -normal.z) << 2) & 0x00ff00) |
-					  (((uint32_t)((base_color & 0x0000ff) * -normal.z)) & 0xff) );			
+					  (((uint32_t)((base_color & 0x0000ff) * -normal.z)) & 0xff) );
+
 			FillTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, color);
 			//DrawTriangle_3D(Buffer, triTranslated.p1, triTranslated.p2, triTranslated.p3, projMatrix, BLACK);
 		}
@@ -311,20 +312,24 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 internal void 
 GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time)
 {
+	// This is called 'per-frame'
+
 	// We should do some better initialization
 	if(!initialized) {Init(Memory, Buffer);}
+
+	// Here, we should check what kind of input has been provided, and update
+	// our state accordingly
 
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
 
-
+	// A hack that allows you to stop the rotation
 	if(GlobalRotating)
 	{
 		fTheta += 1.0f * (delta_time / (1000 * 1000));
 	}
 
-	DrawTriangles(Buffer);
-	DrawCube(Buffer, WHITE);
+	//DrawTriangles(Buffer);
+	DrawCube(Buffer, PURPLE);
 
-	// This is called 'per-frame'
 }

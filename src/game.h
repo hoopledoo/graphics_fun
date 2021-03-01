@@ -63,7 +63,7 @@ Needs to take 4 things:
 - timing
 - controller/keyboard input
 - bitmap to use 
--sound buffer to use
+- sound buffer to use
 
 NOTE: In the future rendering _specifically_ will become a 3-tiered abstraction
 */

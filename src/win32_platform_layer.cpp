@@ -92,6 +92,15 @@ Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer, HDC DeviceContext,
                   SRCCOPY); // see Raster operators on msdn for other options
 }
 
+// We need a way to read from files
+// Our game can provide us with files we should open 
+// and we can handle opening them after we return from GameUpdateAndRender()
+internal void
+Win32ReadFromFile(void)
+{
+
+}
+
 LRESULT CALLBACK
 Win32MainWindowCallback(HWND 	Window,
 						UINT 	Message,
@@ -234,6 +243,14 @@ WinMain(HINSTANCE 	Instance,
 	                    case WM_KEYDOWN:
 	                    case WM_KEYUP:
 	                    {
+	                    	// In order to handle and track keyboard input,
+	                    	// we'll maintain information about the key's that have been pressed
+	                    	// and how many times they have been pressed since the last frame.
+	                    	// We also want to keep track of whether or not the key was left in the "up"
+	                    	// or "down" state.
+	                    	// And we want to be sure we can keep track of whether keys have been
+	                    	// held down vs. press & release.
+	                    	
 							// For now, we're just using Keyups (because they are simplest)
 							// TODO - properly handle both keyups and keydowns
 							if (Message.message == WM_KEYUP)

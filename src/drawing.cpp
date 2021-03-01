@@ -199,6 +199,7 @@ FillTriangle_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_R
 	FillTriangle_2D(Buffer, p1, p2, p3, color);
 }
 
+// If we want to save some cycles, we can use the naive method to fill triangles
 internal void
 FillFlatTopNaive(game_offscreen_buffer *Buffer, 
 			Point_2D_Real flattop_start, Point_2D_Real flattop_end1, Point_2D_Real flattop_end2,
@@ -335,6 +336,7 @@ FillFlatTopBresenham(game_offscreen_buffer *Buffer,
 	}
 }
 
+// If we want to save some cycles, we can use the naive method to fill triangles
 internal void
 FillFlatBottomNaive(game_offscreen_buffer *Buffer,
 				Point_2D_Real flatbottom_start, Point_2D_Real flatbottom_end1, Point_2D_Real flatbottom_end2,
