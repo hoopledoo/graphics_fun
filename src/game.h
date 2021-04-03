@@ -29,6 +29,8 @@ if(!(Expression)) {*(int *)0 = 0;}
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 /* TODO: swap, min, max .... macros?? */
 
+#define NumberOfDefinedKeys 52
+
 inline uint32_t
 SafeTruncateUInt64(uint64_t Value)
 {
@@ -84,7 +86,89 @@ struct game_memory
     void *TransientStorage; // NOTE: REQUIRED to be cleared to zero @ startup
 };
 
-internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time);
+// Array of all keys that can be used:
+// [ESC, TAB, CAPS, SHIFT, LCTRL, LALT, SPAC, RALT, RCTRL, ...]
+enum VKEY 
+{
+    ESC = 0,
+    TAB = 1,
+    CAPS = 2,
+    LSHIFT = 3,
+    LCTRL = 4,
+    LALT = 5, 
+    SPACE = 6,
+    RALT = 7,
+    RCTRL = 8,
+    LEFT = 9,
+    DOWN = 10,
+    RIGHT = 11,
+    UP = 12,
+    RSHIFT = 13,
+    ENTER = 14,
+    BACKSPACE = 15,
+    ONE = 16,
+    TWO = 17,
+    THREE = 18,
+    FOUR = 19,
+    FIVE = 20,
+    SIX = 21,
+    SEVEN = 22,
+    EIGHT = 23,
+    NINE = 24,
+    ZERO = 25,
+    Q = 26,
+    W = 27,
+    E = 28,
+    R = 29,
+    T = 30,
+    Y = 31,
+    U = 32,
+    I = 33,
+    O = 34,
+    P = 35,
+    A = 36,
+    S = 37,
+    D = 38,
+    F = 39,
+    G = 40,
+    H = 41,
+    J = 42,
+    K = 43,
+    L = 44,
+    Z = 45,
+    X = 46,
+    C = 47, 
+    V = 48,
+    B = 49,
+    N = 50,
+    M = 51
+};
+
+// Position in the game_keyboard_input keys array will indicate the keycode,
+// so it's not necessary to include that here.
+// We only care to track the changes in state (pressed, released, up, down, num_presses)
+// pressed is implied by prev_state_up = true, curr_state_up=false
+// released is implied by prev_state_up = false, curr_state_up = true
+struct game_key_state
+{
+    bool32 prev_state_up;
+    bool32 curr_state_up;
+    uint32_t num_presses;
+};
+
+// For now, we'll simply pass an array of all keys we care to track
+// along with information about which keys were pressed or released
+// And each individual key input item will track information about those keys.
+// For quick lookup, we'll also track released keys, and newly pressed keys
+struct game_keyboard_input
+{
+    uint32_t num_keys;
+    game_key_state keys[NumberOfDefinedKeys];
+    bool32 keys_released[NumberOfDefinedKeys];
+    bool32 keys_pressed[NumberOfDefinedKeys];
+};
+
+internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input);
 
 /*
 NOTE: Services that the platform layer provides to the game

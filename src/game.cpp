@@ -1,4 +1,5 @@
 #include "game.h"
+#include <windows.h> // TEMPORARY - TO BE REMOVED
 
 // Temporarily using these globals, will find a better system later
 global_variable Mesh cube;
@@ -310,7 +311,7 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 }
 
 internal void 
-GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time)
+GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input)
 {
 	// This is called 'per-frame'
 
@@ -319,6 +320,24 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 	// Here, we should check what kind of input has been provided, and update
 	// our state accordingly
+	VKEY k = ESC;
+	if(Input->keys_pressed[k]) { exit(0); }
+	
+	for(uint32_t i=0; i<Input->num_keys; i++)
+	{
+		if(Input->keys_pressed[i])
+		{
+			OutputDebugString("Key press found");
+			// Handle and clear
+			Input->keys_pressed[i] = false;
+		}
+		if(Input->keys_released[i]) 
+		{ 
+			OutputDebugString("Key release found");
+			// Handle and clear
+			Input->keys_released[i] = false;
+		}
+	}
 
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);

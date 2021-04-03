@@ -14,7 +14,7 @@
 
 typedef float real32;
 typedef double real64;
-typedef int32_t bool32;
+typedef char bool32;
 
 // Remember - we're just building one giant file (translation unit)
 // rather than splitting out into tons of tiny pieces
@@ -227,6 +227,24 @@ WinMain(HINSTANCE 	Instance,
             GameMemory.TransientStorage = ((uint8_t *)GameMemory.PermanentStorage + 
                                            GameMemory.PermanentStorageSize);
             MSG Message;
+
+            // Initialize our keyboard input - start with all keys in the up state
+            game_keyboard_input Input = {};
+            Input.num_keys = NumberOfDefinedKeys;
+            for(uint32_t i=0; i<Input.num_keys; i++)
+            {
+            	// Initialize the individual keys themselves
+            	Input.keys[i].prev_state_up = true;
+    			Input.keys[i].curr_state_up = true;
+    			Input.keys[i].num_presses = 0;
+
+    			// Update the released/pressed arrays
+    			// recall, these are just for our convenience
+    			// at the moment
+    			Input.keys_released[i] = false;
+    			Input.keys_pressed[i] = false;
+            }
+
             while(GlobalRunning){
 	            while(PeekMessage(&Message, 0,0,0, PM_REMOVE))
 	            {
@@ -237,37 +255,97 @@ WinMain(HINSTANCE 	Instance,
 	                
 	                switch(Message.message)
 	                {
-	                    // Handle keyboard input
-	                    case WM_SYSKEYDOWN:
-	                    case WM_SYSKEYUP:
+                    	// In order to handle and track keyboard input,
+                    	// we'll maintain information about the key's that have been pressed
+                    	// and how many times they have been pressed since the last frame.
+                    	// We also want to keep track of whether or not the key was left in the "up"
+                    	// or "down" state.
+                    	// And we want to be sure we can keep track of whether keys have been
+                    	// held down vs. press & release.	                	
+
+	                    // Handle keyboard input - for now, we won't deal with system keys
+	                    //case WM_SYSKEYDOWN:
+	                    //case WM_SYSKEYUP:
+	                	VKEY key;
+
 	                    case WM_KEYDOWN:
 	                    case WM_KEYUP:
 	                    {
-	                    	// In order to handle and track keyboard input,
-	                    	// we'll maintain information about the key's that have been pressed
-	                    	// and how many times they have been pressed since the last frame.
-	                    	// We also want to keep track of whether or not the key was left in the "up"
-	                    	// or "down" state.
-	                    	// And we want to be sure we can keep track of whether keys have been
-	                    	// held down vs. press & release.
-	                    	
-							// For now, we're just using Keyups (because they are simplest)
-							// TODO - properly handle both keyups and keydowns
-							if (Message.message == WM_KEYUP)
+							switch(Message.wParam)
+							{	
+								// Handle different types of Control Keystrokes
+	                    		case VK_ESCAPE: {key = ESC;} break;
+	                    		case VK_TAB: {key = TAB;} break;
+	                    		case VK_CAPITAL: {key = CAPS;} break;
+	                    		case VK_LSHIFT: {key = LSHIFT;} break;
+	                    		case VK_LCONTROL: {key = LCTRL;} break;
+	                    		case VK_LMENU: {key = LALT;} break;
+	                    		case VK_SPACE: {key = SPACE;} break;
+	                    		case VK_RMENU: {key = RALT;} break;
+	                    		case VK_RCONTROL: {key = RCTRL;} break;
+	                    		case VK_RSHIFT: {key = RSHIFT;} break;
+	                    		case VK_RETURN: {key = ENTER;} break;
+	                    		case VK_BACK: {key = BACKSPACE;} break;
+	                    		case VK_LEFT: {key = LEFT;} break;
+	                    		case VK_DOWN: {key = DOWN;} break;
+	                    		case VK_RIGHT: {key = RIGHT;} break;
+	                    		case VK_UP: {key = UP;} break;
+ 
+	                    		// Handle Numeric Characters
+	                    		case '0': {key = ZERO;} break;
+	                    		case '1': {key = ONE;} break;
+	                    		case '2': {key = TWO;} break;
+	                    		case '3': {key = THREE;} break;
+	                    		case '4': {key = FOUR;} break;
+	                    		case '5': {key = FIVE;} break;
+	                    		case '6': {key = SIX;} break;
+	                    		case '7': {key = SEVEN;} break;
+	                    		case '8': {key = EIGHT;} break;
+	                    		case '9': {key = NINE;} break;
+
+	                    		// Handle Alpha Characters
+	                    		case 'Q': {key = Q;} break;
+	                    		case 'W': {key = W;} break;
+	                    		case 'E': {key = E;} break;
+	                    		case 'R': {key = R;} break;
+	                    		case 'T': {key = T;} break;
+	                    		case 'Y': {key = Y;} break;
+	                    		case 'U': {key = U;} break;
+	                    		case 'I': {key = I;} break;
+	                    		case 'O': {key = O;} break;
+	                    		case 'P': {key = P;} break;
+	                    		case 'A': {key = A;} break;
+	                    		case 'S': {key = S;} break;
+	                    		case 'D': {key = D;} break;
+	                    		case 'F': {key = F;} break;
+	                    		case 'G': {key = G;} break;
+	                    		case 'H': {key = H;} break;
+	                    		case 'J': {key = J;} break;
+	                    		case 'K': {key = K;} break;
+	                    		case 'L': {key = L;} break;
+	                    		case 'Z': {key = Z;} break;
+	                    		case 'X': {key = X;} break;
+	                    		case 'C': {key = C;} break;
+	                    		case 'V': {key = V;} break;
+	                    		case 'B': {key = B;} break;
+	                    		case 'N': {key = N;} break;
+	                    		case 'M': {key = M;} break;
+	                    	}	
+
+                    		if(Message.message == WM_KEYDOWN)
 							{
-								uint32_t VKCode = (uint32_t)Message.wParam;
-								if (VKCode == 'Q')
-								{
-									GlobalRunning = false;
-								}
-								else if (VKCode == 'S')
-								{
-									GlobalRotating = !GlobalRotating;
-								}
-								// Handle different keypresses.
+								if(Input.keys[key].prev_state_up) { Input.keys_pressed[key] = true; Input.keys[key].num_presses++; }
+	                    		Input.keys[key].prev_state_up = Input.keys[key].curr_state_up;
+	                    		Input.keys[key].curr_state_up = false;									
 							}
+							else
+							{
+								if(!Input.keys[key].prev_state_up) { Input.keys_released[key] = true; }
+                    			Input.keys[key].prev_state_up = Input.keys[key].curr_state_up;
+                    			Input.keys[key].curr_state_up = true;
+							}	                    	                    			                    		                
 	                    } break;
-	                    
+
 	                    default:
 	                    {
 	                        TranslateMessage(&Message);
@@ -285,7 +363,7 @@ WinMain(HINSTANCE 	Instance,
 	            /* CALL FROM PLATFORM LAYER TO OUR GAME 
 	             * THIS WILL POPULATE THE BACKBUFFER SO
 	             * WE KNOW WHAT TO DRAW */
-	            GameUpdateAndRender(&GameMemory, &Buffer, (real32)uSPerFrame);
+	            GameUpdateAndRender(&GameMemory, &Buffer, (real32)uSPerFrame, &Input);
             
 	            /* We've returned from the game code */
 	            win32_window_dimension Dimension = Win32GetWindowDimension(Window);
