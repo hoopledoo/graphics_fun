@@ -334,7 +334,8 @@ WinMain(HINSTANCE 	Instance,
 
                     		if(Message.message == WM_KEYDOWN)
 							{
-								if(Input.keys[key].prev_state_up) { Input.keys_pressed[key] = true; Input.keys[key].num_presses++; }
+								Input.keys_pressed[key] = true;
+								//if(Input.keys[key].prev_state_up) { Input.keys[key].num_presses++; }
 	                    		Input.keys[key].prev_state_up = Input.keys[key].curr_state_up;
 	                    		Input.keys[key].curr_state_up = false;									
 							}

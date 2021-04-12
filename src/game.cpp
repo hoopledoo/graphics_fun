@@ -1,12 +1,19 @@
 #include "game.h"
 #include <windows.h> // TEMPORARY - TO BE REMOVED
 
+#define ROTZPOS 0b0001
+#define ROTZNEG 0b0011
+
+#define ROTXNEG 0b1100
+#define ROTXPOS 0b1000
+
 // Temporarily using these globals, will find a better system later
 global_variable Mesh cube;
 global_variable real32 projMatrix[4][4] = {0};
-global_variable real32 fTheta = 1.0f;
+global_variable real32 zTheta = 1.0f;
+global_variable real32 xTheta = 1.0f;
 global_variable Vec3D vCamera = {0};
-global_variable bool32 GlobalRotating = true;
+global_variable unsigned char Rotation = 0x0000;
 
 // this is stop-gap hack
 // TODO: Move this functionality to a proper
@@ -173,7 +180,7 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
 */
 
-//#if 0
+#if 0
 	p1.x = 25; p1.y = 0;
 	p2.x = 0; p2.y = 15;
 	p3.x = 10; p3.y = 30;
@@ -214,7 +221,7 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	p2.x = 551/*+100*cosf(fTheta)*/; p2.y = 250+150*sinf(fTheta);
 	p3.x = 501+100*cosf(fTheta); p3.y = 350;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);	
-//#endif
+#endif
 }
 
 internal void
@@ -230,21 +237,22 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 	// TODO: wrap up rotation matrix generation cleanly into our drawing.cpp "library"
 	// These matrices are easy to derive, and we can look them up on wikipedia as well
 
-	// Rotation Z
-	matRotZ[0][0] = cosf(fTheta);
-	matRotZ[0][1] = sinf(fTheta);
-	matRotZ[1][0] = -sinf(fTheta);
-	matRotZ[1][1] = cosf(fTheta);
+	// Rotation Z POSITIVE
+	matRotZ[0][0] = cosf(zTheta);
+	matRotZ[0][1] = sinf(zTheta);
+	matRotZ[1][0] = -sinf(zTheta);
+	matRotZ[1][1] = cosf(zTheta);
 	matRotZ[2][2] = 1;
 	matRotZ[3][3] = 1;
 
-	// Rotation X
+	// Rotation X POSITIVE
 	matRotX[0][0] = 1;
-	matRotX[1][1] = cosf(fTheta * 0.5f);
-	matRotX[1][2] = sinf(fTheta * 0.5f);
-	matRotX[2][1] = -sinf(fTheta * 0.5f);
-	matRotX[2][2] = cosf(fTheta * 0.5f);
+	matRotX[1][1] = cosf(xTheta * 0.5f);
+	matRotX[1][2] = sinf(xTheta * 0.5f);
+	matRotX[2][1] = -sinf(xTheta * 0.5f);
+	matRotX[2][2] = cosf(xTheta * 0.5f);
 	matRotX[3][3] = 1;	
+
 
 
 	for (Triangle_3D tri : cube.tris)
@@ -255,13 +263,13 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 		// Rotate in Z-Axis
 		MatrixVecMult(&triRotatedZ.p1, &tri.p1, matRotZ);
 		MatrixVecMult(&triRotatedZ.p2, &tri.p2, matRotZ);
-		MatrixVecMult(&triRotatedZ.p3, &tri.p3, matRotZ);
+		MatrixVecMult(&triRotatedZ.p3, &tri.p3, matRotZ);			
 
 		// Rotate in X-Axis
 		MatrixVecMult(&triRotatedZX.p1, &triRotatedZ.p1, matRotX);
 		MatrixVecMult(&triRotatedZX.p2, &triRotatedZ.p2, matRotX);
-		MatrixVecMult(&triRotatedZX.p3, &triRotatedZ.p3, matRotX);
-
+		MatrixVecMult(&triRotatedZX.p3, &triRotatedZ.p3, matRotX);			
+		
 		// Offset into the screen
 		// TODO: this is a placeholder until a proper camera is implemented
 		triTranslated = triRotatedZX;
@@ -320,20 +328,40 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 
 	// Here, we should check what kind of input has been provided, and update
 	// our state accordingly
-	VKEY k = ESC;
-	if(Input->keys_pressed[k]) { exit(0); }
-	
+	if(Input->keys_pressed[ESC] || Input->keys_pressed[Q]) { exit(0); }
+
 	for(uint32_t i=0; i<Input->num_keys; i++)
 	{
 		if(Input->keys_pressed[i])
 		{
-			OutputDebugString("Key press found");
+			//OutputDebugString("Key press found");
 			// Handle and clear
+			if(i == LEFT){
+				Rotation |= ROTZNEG;
+			}
+			else if(i == RIGHT)
+			{
+				Rotation &= ~ROTZNEG;
+				Rotation |= ROTZPOS;
+			}
+			else if(i == DOWN){
+				Rotation &= ~ROTXNEG;
+				Rotation |= ROTXPOS;
+			}
+			else if(i == UP)
+			{
+				Rotation |= ROTXNEG;
+			}
+			else if(i == S)
+			{
+				Rotation = 0x0000;
+			}
+
 			Input->keys_pressed[i] = false;
 		}
 		if(Input->keys_released[i]) 
 		{ 
-			OutputDebugString("Key release found");
+			//OutputDebugString("Key release found");
 			// Handle and clear
 			Input->keys_released[i] = false;
 		}
@@ -342,10 +370,28 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	// These are just some test drawings to make sure our drawing functionality works!
 	FillColor(Buffer, BLACK);
 
-	// A hack that allows you to stop the rotation
-	if(GlobalRotating)
+	// update theta to allow for rotation
+	// We tried to be tricky with our definitions of ROTXNEG and ROTZNEG
+	// but that could come back to bite us later. 
+	// TODO: Improve so we aren't reliant on special rotation encodings
+	// that I'll most certain forget in the future
+	if(Rotation)
 	{
-		fTheta += 1.0f * (delta_time / (1000 * 1000));
+		unsigned char x_check = Rotation & ROTXNEG;
+		unsigned char z_check = Rotation & ROTZNEG;
+		// Handle X axis rotation
+		if(x_check)
+		{
+			if((x_check) < ROTXNEG) xTheta += 1.0f * (delta_time / (1000 * 1000));
+			else xTheta -= 1.0f * (delta_time / (1000 * 1000));
+		}
+
+		// Handle Z axis rotation
+		if(z_check)
+		{
+			if((z_check) < ROTZNEG) zTheta += 1.0f * (delta_time / (1000 * 1000));
+			else zTheta -= 1.0f * (delta_time / (1000 * 1000));
+		}
 	}
 
 	//DrawTriangles(Buffer);
