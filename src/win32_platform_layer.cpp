@@ -335,13 +335,15 @@ WinMain(HINSTANCE 	Instance,
                     		if(Message.message == WM_KEYDOWN)
 							{
 								Input.keys_pressed[key] = true;
+								// TODO - test and fix counting the number of presses
+								// I think we might be able to get this from the WM_KEYDOWN message already
 								//if(Input.keys[key].prev_state_up) { Input.keys[key].num_presses++; }
 	                    		Input.keys[key].prev_state_up = Input.keys[key].curr_state_up;
 	                    		Input.keys[key].curr_state_up = false;									
 							}
 							else
 							{
-								if(!Input.keys[key].prev_state_up) { Input.keys_released[key] = true; }
+								Input.keys_released[key] = true; 
                     			Input.keys[key].prev_state_up = Input.keys[key].curr_state_up;
                     			Input.keys[key].curr_state_up = true;
 							}	                    	                    			                    		                

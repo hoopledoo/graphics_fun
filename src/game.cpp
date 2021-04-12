@@ -247,10 +247,10 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 
 	// Rotation X POSITIVE
 	matRotX[0][0] = 1;
-	matRotX[1][1] = cosf(xTheta * 0.5f);
-	matRotX[1][2] = sinf(xTheta * 0.5f);
-	matRotX[2][1] = -sinf(xTheta * 0.5f);
-	matRotX[2][2] = cosf(xTheta * 0.5f);
+	matRotX[1][1] = cosf(xTheta * 0.75f);
+	matRotX[1][2] = sinf(xTheta * 0.75f);
+	matRotX[2][1] = -sinf(xTheta * 0.75f);
+	matRotX[2][2] = cosf(xTheta * 0.75f);
 	matRotX[3][3] = 1;	
 
 
@@ -334,8 +334,7 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 	{
 		if(Input->keys_pressed[i])
 		{
-			//OutputDebugString("Key press found");
-			// Handle and clear
+			/* HANDLE INPUT */
 			if(i == LEFT){
 				Rotation |= ROTZNEG;
 			}
@@ -344,6 +343,8 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 				Rotation &= ~ROTZNEG;
 				Rotation |= ROTZPOS;
 			}
+
+			// MODIFY X-AXIS ROTATION
 			else if(i == DOWN){
 				Rotation &= ~ROTXNEG;
 				Rotation |= ROTXPOS;
@@ -352,17 +353,29 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 			{
 				Rotation |= ROTXNEG;
 			}
+
+			// PAUSE ROTATION
 			else if(i == S)
 			{
 				Rotation = 0x0000;
 			}
 
+			// RESET POSITION
+			else if(i == R)
+			{
+				xTheta = 1.0f;
+				zTheta = 1.0f;
+			}
+
+			/* CLEAR INPUT TO "CONSUME" THE KEYPRESS */
 			Input->keys_pressed[i] = false;
 		}
 		if(Input->keys_released[i]) 
 		{ 
 			//OutputDebugString("Key release found");
-			// Handle and clear
+			/* HANDLE INPUT - KEY RELEASE */
+
+			/* CLEAR INPUT TO "CONSUME" THE KEY RELEASE */
 			Input->keys_released[i] = false;
 		}
 	}
