@@ -92,13 +92,64 @@ Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer, HDC DeviceContext,
                   SRCCOPY); // see Raster operators on msdn for other options
 }
 
-// We need a way to read from files
-// Our game can provide us with files we should open 
-// and we can handle opening them after we return from GameUpdateAndRender()
-internal void
-Win32ReadFromFile(void)
+internal debug_read_file_result 
+DEBUGPlatformReadEntireFile(char *Filename)
+{
+	debug_read_file_result ReadResult = {0};
+	HANDLE FileHandle = CreateFile(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if(FileHandle != INVALID_HANDLE_VALUE)
+	{
+		void *Result = 0;
+		LARGE_INTEGER FileSize;
+		if(GetFileSizeEx(FileHandle, &FileSize))
+		{
+			uint32_t FileSize32 = SafeTruncateUInt64(FileSize.QuadPart);			
+			Result = VirtualAlloc(0, FileSize32, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+			if(Result)
+			{
+				DWORD BytesRead;
+				if(ReadFile(FileHandle, Result, FileSize32, &BytesRead, 0) && FileSize32 == BytesRead)
+				{
+					ReadResult.Content = Result;
+					ReadResult.ContentSize = FileSize32;
+				}
+				else
+				{
+					DEBUGPlatformFreeFileMemory(Result);
+					Result = 0;
+				}
+			}
+			else
+			{
+				// TODO: Log the failure to allocate memory for file contents
+			}
+		}
+		else
+		{
+			// TODO: Log failure getting the file size
+		}
+		CloseHandle(FileHandle);
+	}
+	else
+	{
+		// TODO: Log failure to "CreateFile"
+	}
+	return(ReadResult);
+}
+
+internal bool32 
+DEBUGPlatformWriteEntireFile(char *Filename, uint32_t MemorySize, void *Memory)
 {
 
+}
+
+internal void 
+DEBUGPlatformFreeFileMemory(void *Memory)
+{
+	if(Memory)
+	{
+		VirtualFree(Memory, 0, MEM_RELEASE);
+	}
 }
 
 LRESULT CALLBACK

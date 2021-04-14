@@ -367,6 +367,12 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 				zTheta = 1.0f;
 			}
 
+			// Switch out to a different model
+			else if(i == ONE)
+			{
+				DEBUGPlatformReadEntireFile("D:\\dev\\TASKS.txt");
+			}
+
 			/* CLEAR INPUT TO "CONSUME" THE KEYPRESS */
 			Input->keys_pressed[i] = false;
 		}
