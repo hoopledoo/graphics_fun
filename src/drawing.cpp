@@ -44,6 +44,51 @@ CrossProduct_3D(Vec3D v1, Vec3D v2)
 	return normal;
 }
 
+internal Point_2D_Int
+RotatePoint_2D(Point_2D_Int p, real32 angle, Point_2D_Int o)
+{
+	Point_2D_Real newp;
+	real32 s = (real32)sin(angle);
+	real32 c = (real32)cos(angle);
+
+	// translate point to the origin
+	p.x -= o.x;
+	p.y -= o.y;
+
+	// rotate our point
+	newp.x = p.x*c - p.y*s;
+	newp.y = p.x*s + p.y*c;
+
+	// translate the point back out
+	p.x = ROUND_INT(newp.x + o.x);
+	p.y = ROUND_INT(newp.y + o.x);
+
+	return p;
+}
+
+internal Point_2D_Int
+RotatePoint_2D(Point_2D_Real p, real32 angle, Point_2D_Real o)
+{
+	Point_2D_Real newp;
+	Point_2D_Int rotp;
+	real32 s = (real32)sin(angle);
+	real32 c = (real32)cos(angle);
+
+	// translate point to the origin
+	p.x -= o.x;
+	p.y -= o.y;
+
+	// rotate our point
+	newp.x = p.x*c - p.y*s;
+	newp.y = p.x*s + p.y*c;
+
+	// translate the point back out
+	rotp.x = ROUND_INT(newp.x + o.x);
+	rotp.y = ROUND_INT(newp.y + o.x);
+
+	return rotp;
+}
+
 // Convert to Integer-based Points before drawing the line
 internal void
 DrawLine_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1_real, Point_2D_Real p2_real, uint32_t color)
@@ -622,6 +667,20 @@ FillTriangle_3D(game_offscreen_buffer *Buffer, Point_3D p1, Point_3D p2, Point_3
 	triProjected_2D.p3.y *= (0.5f * (real32)Buffer->Height);
 
 	FillTriangle_2D(Buffer, triProjected_2D.p1, triProjected_2D.p2, triProjected_2D.p3, color);
+}
+
+internal void
+FillRect_2D(game_offscreen_buffer *Buffer, Rect_2D_Int r, uint32_t color)
+{
+	FillTriangle_2D(Buffer, r.p1, r.p2, r.p3, color);
+	FillTriangle_2D(Buffer, r.p1, r.p3, r.p4, color);
+}
+
+internal void
+FillRect_2D(game_offscreen_buffer *Buffer, Rect_2D_Real r, uint32_t color)
+{
+	FillTriangle_2D(Buffer, r.p1, r.p2, r.p3, color);
+	FillTriangle_2D(Buffer, r.p1, r.p3, r.p4, color);
 }
 
 internal void

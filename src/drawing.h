@@ -64,6 +64,22 @@ typedef struct Triangle_3D
 
 } Triangle_3D;
 
+typedef struct Rect_2D_Real
+{
+	Point_2D_Real p1;
+	Point_2D_Real p2;
+	Point_2D_Real p3;
+	Point_2D_Real p4;
+} Rect_2D_Real;
+
+typedef struct Rect_2D_Int
+{
+	Point_2D_Int p1;
+	Point_2D_Int p2;
+	Point_2D_Int p3;
+	Point_2D_Int p4;
+} Rect_2D_Int;
+
 typedef struct Mesh
 {
 	std::vector<Triangle_3D> tris;
@@ -94,6 +110,11 @@ internal void FillFlatBottomBresenham(game_offscreen_buffer *Buffer, Point_2D_Re
 
 internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Real p1, Point_2D_Real p2, uint32_t color);
 internal void FillRect_2D(game_offscreen_buffer *Buffer, Point_2D_Int p1, Point_2D_Int p2, uint32_t color);
+internal void FillRect_2D(game_offscreen_buffer *Buffer, Rect_2D_Int r, uint32_t color);
+internal void FillRect_2D(game_offscreen_buffer *Buffer, Rect_2D_Real r, uint32_t color);
+
+internal Point_2D_Int RotatePoint_2D(Point_2D_Int p, real32 angle, Point_2D_Int o={0,0});
+internal Point_2D_Int RotatePoint_2D(Point_2D_Real p, real32 angle, Point_2D_Real o={0,0});
 
 internal void FillColor(game_offscreen_buffer *Buffer, uint32_t color);
 

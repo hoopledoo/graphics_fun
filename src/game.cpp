@@ -15,6 +15,10 @@ global_variable real32 xTheta = 1.0f;
 global_variable Vec3D vCamera = {0};
 global_variable unsigned char Rotation = 0x0000;
 
+global_variable real32 point_rotTheta = 0.0f;
+global_variable real32 point_rotSpeed = 1.75f;
+global_variable unsigned char rpoint = 1;
+
 // this is stop-gap hack
 // TODO: Move this functionality to a proper
 // initialization system
@@ -115,6 +119,7 @@ DrawBoxes(game_offscreen_buffer *Buffer)
 	// and then shift and OR them together	
 }
 
+#if 0
 internal void
 DrawTriangles(game_offscreen_buffer *Buffer)
 {
@@ -166,21 +171,6 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
 	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
 
-/*
-	p1.x = 0; p1.y = 100;
-	p2.x = 0; p2.y = 200;
-	p3.x = 100; p3.y = 100;
-	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
-	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
-
-	p1.x = 300; p1.y = 200;
-	p2.x = 250; p2.y = 400;
-	p3.x = 200; p3.y = 300;
-	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);
-	DrawTriangle_2D(Buffer, p1, p2, p3, GREEN);
-*/
-
-#if 0
 	p1.x = 25; p1.y = 0;
 	p2.x = 0; p2.y = 15;
 	p3.x = 10; p3.y = 30;
@@ -221,8 +211,8 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	p2.x = 551/*+100*cosf(fTheta)*/; p2.y = 250+150*sinf(fTheta);
 	p3.x = 501+100*cosf(fTheta); p3.y = 350;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);	
-#endif
 }
+#endif
 
 internal void
 DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
@@ -318,6 +308,65 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 	}	
 }
 
+internal void
+DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta)
+{
+	Point_2D_Int a,b,c,d;
+	Point_2D_Int diffColor;
+	a.x = 300; a.y = 300;
+	b.x = 300; b.y = 400;
+	c.x = 400; c.y = 400;
+	d.x = 400; d.y = 300;
+
+	switch(rpoint)
+	{
+		case 1:
+		{
+			b = RotatePoint_2D(b, rotTheta, a);
+			c = RotatePoint_2D(c, rotTheta, a);
+			d = RotatePoint_2D(d, rotTheta, a);
+			diffColor = a;
+		} break;
+		case 2: // This case breaks
+		{
+			a = RotatePoint_2D(a, rotTheta, b);
+			c = RotatePoint_2D(c, rotTheta, b);
+			d = RotatePoint_2D(d, rotTheta, b);
+			diffColor = b;
+		} break;
+		case 3:
+		{
+			a = RotatePoint_2D(a, rotTheta, c);
+			b = RotatePoint_2D(b, rotTheta, c);
+			d = RotatePoint_2D(d, rotTheta, c);
+			diffColor = c;
+		} break;
+		case 4: // As does this one
+		{
+			a = RotatePoint_2D(a, rotTheta, d);
+			b = RotatePoint_2D(b, rotTheta, d);
+			c = RotatePoint_2D(c, rotTheta, d);
+			diffColor = d;
+		} break;
+	}
+
+	// Theory behind the issues - is that the order of the points matters when building the rectangle
+	// because the rectangle is being drawn as two triangles
+
+	Rect_2D_Int r;
+	r.p1 = a; r.p2 = b; r.p3 = c; r.p4 = d;
+	FillRect_2D(Buffer, r, WHITE);
+
+	// Indicate which pixel is the current pivot point
+	Point_2D_Int start, end;
+	start.x = diffColor.x-2; start.y = diffColor.y+2;
+	end.x = diffColor.x+2; end.y = diffColor.y-2;
+	FillRect_2D(Buffer, start, end, RED);
+
+	//DrawPixel(Buffer, a, WHITE);
+	//DrawPixel(Buffer, b, WHITE);
+}
+
 internal void 
 GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input)
 {
@@ -365,12 +414,38 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 			{
 				xTheta = 1.0f;
 				zTheta = 1.0f;
+				point_rotTheta = 0.0f;
 			}
 
 			// Switch out to a different model
+			//else if(i == ONE)
+			//{
+			//	DEBUGPlatformReadEntireFile("D:\\dev\\TASKS.txt");
+			//}
+
 			else if(i == ONE)
 			{
-				DEBUGPlatformReadEntireFile("D:\\dev\\TASKS.txt");
+				Rotation = 0x0000;
+				point_rotTheta = 0.0f;
+				rpoint = 1;
+			}
+			else if(i == TWO)
+			{
+				Rotation = 0x0000;
+				point_rotTheta = 0.0f;
+				rpoint = 2;
+			}
+			else if(i == THREE)
+			{
+				Rotation = 0x0000;
+				point_rotTheta = 0.0f;
+				rpoint = 3;
+			}
+			else if(i == FOUR)
+			{
+				Rotation = 0x0000;
+				point_rotTheta = 0.0f;
+				rpoint = 4;
 			}
 
 			/* CLEAR INPUT TO "CONSUME" THE KEYPRESS */
@@ -408,12 +483,19 @@ GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 d
 		// Handle Z axis rotation
 		if(z_check)
 		{
-			if((z_check) < ROTZNEG) zTheta += 1.0f * (delta_time / (1000 * 1000));
-			else zTheta -= 1.0f * (delta_time / (1000 * 1000));
+			if((z_check) < ROTZNEG){
+				zTheta += 1.0f * (delta_time / (1000 * 1000));
+				point_rotTheta += point_rotSpeed * (delta_time / (1000 * 1000));
+			}
+			else{ 
+				zTheta -= 1.0f * (delta_time / (1000 * 1000));
+				point_rotTheta -= point_rotSpeed * (delta_time / (1000 * 1000));
+			}
 		}
 	}
 
+	DrawRotatingPoints(Buffer, point_rotTheta);
 	//DrawTriangles(Buffer);
-	DrawCube(Buffer, PURPLE);
+	//DrawCube(Buffer, PURPLE);
 
 }
