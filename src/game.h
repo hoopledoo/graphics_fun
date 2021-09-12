@@ -13,6 +13,20 @@ GAME_SLOW:
 1 - slow code allowed
 */
 
+#define internal static
+#define local_persist static
+#define global_variable static
+
+#define Pi32 3.141592653589793238462643383279
+
+typedef float real32;
+typedef double real64;
+typedef char bool32;
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+
 #if GAME_SLOW
 // Cause an exception if assertion fails
 #define Assert(Expression) \
@@ -31,7 +45,7 @@ if(!(Expression)) {*(int *)0 = 0;}
 
 #define NumberOfDefinedKeys 52
 
-inline uint32_t
+uint32_t
 SafeTruncateUInt64(uint64_t Value)
 {
     Assert(Value <= 0xFFFFFFFF);
@@ -55,9 +69,16 @@ struct debug_read_file_result
     void *Content;
     uint32_t ContentSize;
 };
-internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename);
-internal bool32 DEBUGPlatformWriteEntireFile(char *Filename, uint32_t MemorySize, void *Memory);
-internal void DEBUGPlatformFreeFileMemory(void *Memory);
+
+#define DEBUG_PLATFORM_FREE_FILE_MEMORY(name) void (name)(void *Memory)
+typedef DEBUG_PLATFORM_FREE_FILE_MEMORY(debug_platform_free_file_memory);
+
+#define DEBUG_PLATFORM_READ_ENTIRE_FILE(name) debug_read_file_result (name)(char *Filename)
+typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
+
+#define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) bool32 (name)(char *Filename, uint32_t MemorySize, void *Memory)
+typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
+
 #endif
 
 /* 
@@ -168,7 +189,12 @@ struct game_keyboard_input
     bool32 keys_pressed[NumberOfDefinedKeys];
 };
 
-internal void GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input);
+#define GAME_UPDATE_AND_RENDER(name) void (name)(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input)
+typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
+// Stub, in case GameUpdateAndRender isn't found when we load dynamically
+GAME_UPDATE_AND_RENDER(GameUpdateAndRenderStub)
+{
+}
 
 /*
 NOTE: Services that the platform layer provides to the game

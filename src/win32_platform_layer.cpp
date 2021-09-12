@@ -6,26 +6,6 @@
 // TODO: Implement sine ourselves?
 #include <math.h>
 
-#define internal static
-#define local_persist static
-#define global_variable static
-
-#define Pi32 3.141592653589793238462643383279
-
-typedef float real32;
-typedef double real64;
-typedef char bool32;
-
-// Remember - we're just building one giant file (translation unit)
-// rather than splitting out into tons of tiny pieces
-// this might be a controversial technique...
-// ------------------------------------------------------------------
-// NOTE: drawing.cpp requires the #defines and typedefs above
-#include "drawing.cpp"
-// NOTE: game.cpp requires the #defines and typedefs above ^
-#include "game.cpp"
-// ------------------------------------------------------------------
-
 #include <malloc.h>
 #include <windows.h>
 
@@ -92,8 +72,16 @@ Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer, HDC DeviceContext,
                   SRCCOPY); // see Raster operators on msdn for other options
 }
 
-internal debug_read_file_result 
-DEBUGPlatformReadEntireFile(char *Filename)
+DEBUG_PLATFORM_FREE_FILE_MEMORY(DEBUGPlatformFreeFileMemory)
+{
+	if(Memory)
+	{
+		VirtualFree(Memory, 0, MEM_RELEASE);
+	}
+}
+
+// TODO: Test file reading and writing!
+DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile)
 {
 	debug_read_file_result ReadResult = {0};
 	HANDLE FileHandle = CreateFile(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
@@ -137,19 +125,50 @@ DEBUGPlatformReadEntireFile(char *Filename)
 	return(ReadResult);
 }
 
-internal bool32 
-DEBUGPlatformWriteEntireFile(char *Filename, uint32_t MemorySize, void *Memory)
+DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUGPlatformWriteEntireFile)
 {
-
+	return false;
 }
 
-internal void 
-DEBUGPlatformFreeFileMemory(void *Memory)
+struct win32_game_code
 {
-	if(Memory)
+	HMODULE GameDLL;
+	game_update_and_render* UpdateAndRender;
+	bool32 IsValid;
+};
+
+internal win32_game_code
+Win32LoadGameCode(void)
+{
+	win32_game_code Result;
+	Result.UpdateAndRender = GameUpdateAndRenderStub;
+
+	CopyFile("game.dll", "game_temp.dll", FALSE);
+	Result.GameDLL = LoadLibraryA("game_temp.dll");
+	if(Result.GameDLL)
 	{
-		VirtualFree(Memory, 0, MEM_RELEASE);
+		Result.UpdateAndRender = (game_update_and_render *)GetProcAddress(Result.GameDLL, "GameUpdateAndRender");
+		Result.IsValid = (Result.UpdateAndRender && 1); // Using this so we can include a similar process for sound later
 	}
+	
+	if(!Result.IsValid)
+	{
+		Result.UpdateAndRender = GameUpdateAndRenderStub;
+	}
+	return Result;
+}
+
+internal void
+WIN32UnloadGameCode(win32_game_code *GameCodeDLL)
+{
+	if(GameCodeDLL->GameDLL)
+	{
+		FreeLibrary(GameCodeDLL->GameDLL);
+		GameCodeDLL->GameDLL = 0;
+	}
+
+	GameCodeDLL-> UpdateAndRender = GameUpdateAndRenderStub;
+	GameCodeDLL->IsValid = false;
 }
 
 LRESULT CALLBACK
@@ -158,6 +177,7 @@ Win32MainWindowCallback(HWND 	Window,
 						WPARAM 	WParam,
 						LPARAM 	LParam)
 {
+	win32_game_code Game = Win32LoadGameCode();
 	LRESULT Result = 0;
     
 	// Here we'll handle the different window messages
@@ -296,7 +316,18 @@ WinMain(HINSTANCE 	Instance,
     			Input.keys_pressed[i] = false;
             }
 
+			win32_game_code Game = Win32LoadGameCode();
+			uint32_t LoadCounter = 0;
+
             while(GlobalRunning){
+				if(LoadCounter > 120)
+				{
+					WIN32UnloadGameCode(&Game);
+					Game = Win32LoadGameCode();
+					LoadCounter = 0;
+				}
+				LoadCounter++;
+
 	            while(PeekMessage(&Message, 0,0,0, PM_REMOVE))
 	            {
 	                if(Message.message == WM_QUIT)
@@ -417,7 +448,7 @@ WinMain(HINSTANCE 	Instance,
 	            /* CALL FROM PLATFORM LAYER TO OUR GAME 
 	             * THIS WILL POPULATE THE BACKBUFFER SO
 	             * WE KNOW WHAT TO DRAW */
-	            GameUpdateAndRender(&GameMemory, &Buffer, (real32)uSPerFrame, &Input);
+	            Game.UpdateAndRender(&GameMemory, &Buffer, (real32)uSPerFrame, &Input);
             
 	            /* We've returned from the game code */
 	            win32_window_dimension Dimension = Win32GetWindowDimension(Window);

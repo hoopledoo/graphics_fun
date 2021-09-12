@@ -1,5 +1,6 @@
 #include "game.h"
-#include <windows.h> // TEMPORARY - TO BE REMOVED
+#include "drawing.cpp"
+//#include <windows.h> // TEMPORARY - TO BE REMOVED
 
 #define ROTZPOS 0b0001
 #define ROTZNEG 0b0011
@@ -367,8 +368,7 @@ DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta)
 	//DrawPixel(Buffer, b, WHITE);
 }
 
-internal void 
-GameUpdateAndRender(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input)
+extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	// This is called 'per-frame'
 

@@ -10,6 +10,8 @@
 #define WIDTH 1280
 #define HEIGHT 720
 
+#include "game.h"
+
 struct win32_offscreen_buffer
 {
 	BITMAPINFO Info;
