@@ -19,7 +19,7 @@ global_variable unsigned char Rotation = 0x0000;
 
 global_variable real32 point_rotTheta = 0.0f;
 global_variable real32 point_rotSpeed = 3.25f;
-global_variable unsigned char rpoint = 1;
+global_variable unsigned char rpoint = 0;
 
 global_variable Point_2D_Real SquarePoints[4] = {};
 
@@ -329,28 +329,28 @@ DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta, bool32 save=f
 
 	switch(rpoint)
 	{
-		case 1:
+		case 0:
 		{
 			b = RotatePoint_2D_Real(b, rotTheta, a);
 			c = RotatePoint_2D_Real(c, rotTheta, a);
 			d = RotatePoint_2D_Real(d, rotTheta, a);
 			diffColor = a;
 		} break;
-		case 2:
+		case 1:
 		{
 			a = RotatePoint_2D_Real(a, rotTheta, b);
 			c = RotatePoint_2D_Real(c, rotTheta, b);
 			d = RotatePoint_2D_Real(d, rotTheta, b);
 			diffColor = b;
 		} break;
-		case 3:
+		case 2:
 		{
 			a = RotatePoint_2D_Real(a, rotTheta, c);
 			b = RotatePoint_2D_Real(b, rotTheta, c);
 			d = RotatePoint_2D_Real(d, rotTheta, c);
 			diffColor = c;
 		} break;
-		case 4:
+		case 3:
 		{
 			a = RotatePoint_2D_Real(a, rotTheta, d);
 			b = RotatePoint_2D_Real(b, rotTheta, d);
@@ -420,9 +420,20 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			else if(i == S)
 			{
 				DrawRotatingPoints(Buffer, point_rotTheta, true);
-				Rotation = 0x0000;
+				
 				// Reset the rotation (because the points now reflect that rotation)
 				point_rotTheta = 0.0f;
+				
+				// For fun, let's automatically set the rotation point to the 
+				// next natural point.
+				if((Rotation & ROTZNEG) < ROTZNEG){ // counterclockwise
+					rpoint = (rpoint + 3)%4;
+				}
+				else{ // clockwise
+					rpoint = (rpoint + 1)%4;
+				}
+				
+				Rotation = 0x0000;
 			}
 
 			// RESET POSITION
@@ -443,25 +454,25 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				Rotation = 0x0000;
 				point_rotTheta = 0.0f;
-				rpoint = 1;
+				rpoint = 0;
 			}
 			else if(i == TWO)
 			{
 				Rotation = 0x0000;
 				point_rotTheta = 0.0f;
-				rpoint = 2;
+				rpoint = 1;
 			}
 			else if(i == THREE)
 			{
 				Rotation = 0x0000;
 				point_rotTheta = 0.0f;
-				rpoint = 3;
+				rpoint = 2;
 			}
 			else if(i == FOUR)
 			{
 				Rotation = 0x0000;
 				point_rotTheta = 0.0f;
-				rpoint = 4;
+				rpoint = 3;
 			}
 
 			/* CLEAR INPUT TO "CONSUME" THE KEYPRESS */
@@ -499,11 +510,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		// Handle Z axis rotation
 		if(z_check)
 		{
-			if((z_check) < ROTZNEG){
+			if((z_check) < ROTZNEG){ // rotate counterclockwise
 				zTheta += 1.0f * (delta_time / (1000 * 1000));
 				point_rotTheta += point_rotSpeed * (delta_time / (1000 * 1000));
 			}
-			else{ 
+			else{ // rotate clockwise
 				zTheta -= 1.0f * (delta_time / (1000 * 1000));
 				point_rotTheta -= point_rotSpeed * (delta_time / (1000 * 1000));
 			}
