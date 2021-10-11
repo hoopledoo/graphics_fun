@@ -15,7 +15,8 @@ REM 32-bit build
 REM cl %CommonCompilerFlags% ..\code\win32_game.cpp /link -subsystem:windows,5.1 %CommonLinkerFlags%
 
 REM 64-bit build
-cl %CommonCompilerFlags% ..\src\game.cpp -Fmgame.map /LD /link /EXPORT:GameUpdateAndRender
+del game_*.pdb > NUL 2> NUL
+cl %CommonCompilerFlags% ..\src\game.cpp -Fmgame.map -LD /link -incremental:no -EXPORT:GameUpdateAndRender -PDB:game_%date:~10,4%%date:~4,2%%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%.pdb
 cl %CommonCompilerFlags% ..\src\win32_platform_layer.cpp -Fmwin32_platform_layer.map /link %CommonLinkerFlags%%
 
 set endtime=%time%

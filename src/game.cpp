@@ -17,7 +17,7 @@ global_variable Vec3D vCamera = {0};
 global_variable unsigned char Rotation = 0x0000;
 
 global_variable real32 point_rotTheta = 0.0f;
-global_variable real32 point_rotSpeed = 1.75f;
+global_variable real32 point_rotSpeed = 3.25f;
 global_variable unsigned char rpoint = 1;
 
 // this is stop-gap hack
@@ -315,9 +315,9 @@ DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta)
 	Point_2D_Int a,b,c,d;
 	Point_2D_Int diffColor;
 	a.x = 300; a.y = 300;
-	b.x = 300; b.y = 400;
-	c.x = 400; c.y = 400;
-	d.x = 400; d.y = 300;
+	b.x = 300; b.y = 350;
+	c.x = 350; c.y = 350;
+	d.x = 350; d.y = 300;
 
 	switch(rpoint)
 	{
@@ -356,7 +356,7 @@ DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta)
 
 	Rect_2D_Int r;
 	r.p1 = a; r.p2 = b; r.p3 = c; r.p4 = d;
-	FillRect_2D(Buffer, r, WHITE);
+	FillRect_2D(Buffer, r, YELLOW);
 
 	// Indicate which pixel is the current pivot point
 	Point_2D_Int start, end;

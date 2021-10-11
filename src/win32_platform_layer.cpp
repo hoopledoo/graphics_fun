@@ -10,6 +10,7 @@
 #include <windows.h>
 
 #include "win32_platform_layer.h"
+#include "err.h"
 
 // TODO: This is a global for now, probably should change later.
 global_variable bool32 GlobalRunning;
@@ -137,18 +138,40 @@ struct win32_game_code
 	bool32 IsValid;
 };
 
+inline FILETIME
+Win32GetLastWriteTime(char *Filename)
+{
+	WIN32_FIND_DATAA FileData;
+	FILETIME LastWrite = {};
+	HANDLE FindHandle = FindFirstFileA(Filename, &FileData);
+	if(FindHandle != INVALID_HANDLE_VALUE)
+	{
+		LastWrite = FileData.ftLastWriteTime;
+		FindClose(FindHandle);
+	}
+
+	return LastWrite;
+}
+
 internal win32_game_code
 Win32LoadGameCode(void)
 {
 	win32_game_code Result;
 	Result.UpdateAndRender = GameUpdateAndRenderStub;
 
-	CopyFile("game.dll", "game_temp.dll", FALSE);
-	Result.GameDLL = LoadLibraryA("game_temp.dll");
+	if(CopyFile(OrigGameDLLPath, TempGameDLLPath, FALSE)==0)
+	{
+		ErrorContinue(TEXT("CopyFile game.dll->game_temp.dll"));
+	}
+	Result.GameDLL = LoadLibraryA(TempGameDLLPath);
 	if(Result.GameDLL)
 	{
 		Result.UpdateAndRender = (game_update_and_render *)GetProcAddress(Result.GameDLL, "GameUpdateAndRender");
 		Result.IsValid = (Result.UpdateAndRender && 1); // Using this so we can include a similar process for sound later
+	}
+	else
+	{
+		ErrorContinue(TEXT("LoadLibraryA game_temp.dll"));
 	}
 	
 	if(!Result.IsValid)
@@ -159,16 +182,21 @@ Win32LoadGameCode(void)
 }
 
 internal void
-WIN32UnloadGameCode(win32_game_code *GameCodeDLL)
+Win32UnloadGameCode(win32_game_code *GameCodeDLL)
 {
 	if(GameCodeDLL->GameDLL)
 	{
-		FreeLibrary(GameCodeDLL->GameDLL);
-		GameCodeDLL->GameDLL = 0;
+		if(FreeLibrary(GameCodeDLL->GameDLL) == 0)
+		{
+			ErrorContinue(TEXT("FreeLibrary"));
+		}
+		else
+		{
+			GameCodeDLL->GameDLL = 0;
+			GameCodeDLL->UpdateAndRender = GameUpdateAndRenderStub;
+			GameCodeDLL->IsValid = false;
+		}
 	}
-
-	GameCodeDLL-> UpdateAndRender = GameUpdateAndRenderStub;
-	GameCodeDLL->IsValid = false;
 }
 
 LRESULT CALLBACK
@@ -177,7 +205,6 @@ Win32MainWindowCallback(HWND 	Window,
 						WPARAM 	WParam,
 						LPARAM 	LParam)
 {
-	win32_game_code Game = Win32LoadGameCode();
 	LRESULT Result = 0;
     
 	// Here we'll handle the different window messages
@@ -317,16 +344,14 @@ WinMain(HINSTANCE 	Instance,
             }
 
 			win32_game_code Game = Win32LoadGameCode();
-			uint32_t LoadCounter = 0;
-
             while(GlobalRunning){
-				if(LoadCounter > 120)
+				FILETIME OrigDLLWriteTime = Win32GetLastWriteTime(OrigGameDLLPath);
+				FILETIME TempDLLWriteTime = Win32GetLastWriteTime(TempGameDLLPath);
+				if(CompareFileTime(&OrigDLLWriteTime, &TempDLLWriteTime) > 0)
 				{
-					WIN32UnloadGameCode(&Game);
+					Win32UnloadGameCode(&Game);
 					Game = Win32LoadGameCode();
-					LoadCounter = 0;
 				}
-				LoadCounter++;
 
 	            while(PeekMessage(&Message, 0,0,0, PM_REMOVE))
 	            {

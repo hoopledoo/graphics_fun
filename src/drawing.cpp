@@ -61,7 +61,7 @@ RotatePoint_2D(Point_2D_Int p, real32 angle, Point_2D_Int o)
 
 	// translate the point back out
 	p.x = ROUND_INT(newp.x + o.x);
-	p.y = ROUND_INT(newp.y + o.x);
+	p.y = ROUND_INT(newp.y + o.y);
 
 	return p;
 }

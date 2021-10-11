@@ -12,6 +12,10 @@
 
 #include "game.h"
 
+// TODO: Create a more robust system for handling these paths
+char* OrigGameDLLPath = "C:\\dev\\graphics_fun\\build\\game.dll";
+char* TempGameDLLPath = "C:\\dev\\graphics_fun\\build\\game_temp.dll";
+
 struct win32_offscreen_buffer
 {
 	BITMAPINFO Info;
