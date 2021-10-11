@@ -21,7 +21,7 @@ global_variable real32 point_rotTheta = 0.0f;
 global_variable real32 point_rotSpeed = 3.25f;
 global_variable unsigned char rpoint = 1;
 
-global_variable Point_2D_Int SquarePoints[4] = {};
+global_variable Point_2D_Real SquarePoints[4] = {};
 
 // this is stop-gap hack
 // TODO: Move this functionality to a proper
@@ -77,10 +77,10 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 	projMatrix[2][3] = 1.0f;
 	projMatrix[3][3] = 0.0f;
 
-	SquarePoints[0].x = 300; SquarePoints[0].y = 300;
-	SquarePoints[1].x = 350; SquarePoints[1].y = 300;
-	SquarePoints[2].x = 350; SquarePoints[2].y = 350;
-	SquarePoints[3].x = 300; SquarePoints[3].y = 350;
+	SquarePoints[0].x = 300.0f; SquarePoints[0].y = 300.0f;
+	SquarePoints[1].x = 350.0f; SquarePoints[1].y = 300.0f;
+	SquarePoints[2].x = 350.0f; SquarePoints[2].y = 350.0f;
+	SquarePoints[3].x = 300.0f; SquarePoints[3].y = 350.0f;
 
 	initialized = true;
 }
@@ -318,128 +318,67 @@ DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
 }
 
 internal void
-DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta)
+DrawRotatingPoints(game_offscreen_buffer *Buffer, real32 rotTheta, bool32 save=false)
 {
-	Point_2D_Int a,b,c,d;
+	Point_2D_Real a,b,c,d;
 	a = SquarePoints[0];
 	b = SquarePoints[1];
 	c = SquarePoints[2];
 	d = SquarePoints[3];
-	Point_2D_Int diffColor;
+	Point_2D_Real diffColor;
 
 	switch(rpoint)
 	{
 		case 1:
 		{
-			b = RotatePoint_2D(b, rotTheta, a);
-			c = RotatePoint_2D(c, rotTheta, a);
-			d = RotatePoint_2D(d, rotTheta, a);
+			b = RotatePoint_2D_Real(b, rotTheta, a);
+			c = RotatePoint_2D_Real(c, rotTheta, a);
+			d = RotatePoint_2D_Real(d, rotTheta, a);
 			diffColor = a;
 		} break;
 		case 2:
 		{
-			a = RotatePoint_2D(a, rotTheta, b);
-			c = RotatePoint_2D(c, rotTheta, b);
-			d = RotatePoint_2D(d, rotTheta, b);
+			a = RotatePoint_2D_Real(a, rotTheta, b);
+			c = RotatePoint_2D_Real(c, rotTheta, b);
+			d = RotatePoint_2D_Real(d, rotTheta, b);
 			diffColor = b;
 		} break;
 		case 3:
 		{
-			a = RotatePoint_2D(a, rotTheta, c);
-			b = RotatePoint_2D(b, rotTheta, c);
-			d = RotatePoint_2D(d, rotTheta, c);
+			a = RotatePoint_2D_Real(a, rotTheta, c);
+			b = RotatePoint_2D_Real(b, rotTheta, c);
+			d = RotatePoint_2D_Real(d, rotTheta, c);
 			diffColor = c;
 		} break;
 		case 4:
 		{
-			a = RotatePoint_2D(a, rotTheta, d);
-			b = RotatePoint_2D(b, rotTheta, d);
-			c = RotatePoint_2D(c, rotTheta, d);
+			a = RotatePoint_2D_Real(a, rotTheta, d);
+			b = RotatePoint_2D_Real(b, rotTheta, d);
+			c = RotatePoint_2D_Real(c, rotTheta, d);
 			diffColor = d;
 		} break;
 	}
 
-	Rect_2D_Int r;
+	Rect_2D_Real r;
 	r.p1 = a; r.p2 = b; r.p3 = c; r.p4 = d;
 	FillRect_2D(Buffer, r, YELLOW);
 
 	// Indicate which pixel is the current pivot point
-	Point_2D_Int start, end;
+	Point_2D_Real start, end;
 	start.x = diffColor.x-2; start.y = diffColor.y+2;
 	end.x = diffColor.x+2; end.y = diffColor.y-2;
 	FillRect_2D(Buffer, start, end, RED);
 
-	/*
-	// Update our points array to capture the changes!
-	SquarePoints[0].x = a.x;  SquarePoints[0].y = a.y;
-	SquarePoints[1].x = b.x;  SquarePoints[1].y = b.y;
-	SquarePoints[2].x = c.x;  SquarePoints[2].y = c.y;
-	SquarePoints[3].x = d.x;  SquarePoints[3].y = d.y;
-	// Reset the rotation (because the points now reflect that rotation)
-	point_rotTheta = 0.0f;
-	*/
-}
-
-internal void
-DrawRotatingPointsAndSave(game_offscreen_buffer *Buffer, real32 rotTheta)
-{
-	Point_2D_Int a,b,c,d;
-	a = SquarePoints[0];
-	b = SquarePoints[1];
-	c = SquarePoints[2];
-	d = SquarePoints[3];
-	Point_2D_Int diffColor;
-
-	switch(rpoint)
+	if(save)
 	{
-		case 1:
-		{
-			b = RotatePoint_2D(b, rotTheta, a);
-			c = RotatePoint_2D(c, rotTheta, a);
-			d = RotatePoint_2D(d, rotTheta, a);
-			diffColor = a;
-		} break;
-		case 2:
-		{
-			a = RotatePoint_2D(a, rotTheta, b);
-			c = RotatePoint_2D(c, rotTheta, b);
-			d = RotatePoint_2D(d, rotTheta, b);
-			diffColor = b;
-		} break;
-		case 3:
-		{
-			a = RotatePoint_2D(a, rotTheta, c);
-			b = RotatePoint_2D(b, rotTheta, c);
-			d = RotatePoint_2D(d, rotTheta, c);
-			diffColor = c;
-		} break;
-		case 4:
-		{
-			a = RotatePoint_2D(a, rotTheta, d);
-			b = RotatePoint_2D(b, rotTheta, d);
-			c = RotatePoint_2D(c, rotTheta, d);
-			diffColor = d;
-		} break;
-	}
-
-	Rect_2D_Int r;
-	r.p1 = a; r.p2 = b; r.p3 = c; r.p4 = d;
-	FillRect_2D(Buffer, r, YELLOW);
-
-	// Indicate which pixel is the current pivot point
-	Point_2D_Int start, end;
-	start.x = diffColor.x-2; start.y = diffColor.y+2;
-	end.x = diffColor.x+2; end.y = diffColor.y-2;
-	FillRect_2D(Buffer, start, end, RED);
-
-	// TODO: Figure out why this warps the lengths over time (is it a weird truncation issue?)	
-	// Update our points array to capture the changes!
-	SquarePoints[0].x = a.x;  SquarePoints[0].y = a.y;
-	SquarePoints[1].x = b.x;  SquarePoints[1].y = b.y;
-	SquarePoints[2].x = c.x;  SquarePoints[2].y = c.y;
-	SquarePoints[3].x = d.x;  SquarePoints[3].y = d.y;
-	// Reset the rotation (because the points now reflect that rotation)
-	// point_rotTheta = 0.0f;
+		// Update our points array to capture the changes!
+		SquarePoints[0].x = a.x;  SquarePoints[0].y = a.y;
+		SquarePoints[1].x = b.x;  SquarePoints[1].y = b.y;
+		SquarePoints[2].x = c.x;  SquarePoints[2].y = c.y;
+		SquarePoints[3].x = d.x;  SquarePoints[3].y = d.y;
+		// Reset the rotation (because the points now reflect that rotation)
+		point_rotTheta = 0.0f;
+	}	
 }
 
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -480,7 +419,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			// PAUSE ROTATION
 			else if(i == S)
 			{
-				DrawRotatingPointsAndSave(Buffer, point_rotTheta);
+				DrawRotatingPoints(Buffer, point_rotTheta, true);
 				Rotation = 0x0000;
 				// Reset the rotation (because the points now reflect that rotation)
 				point_rotTheta = 0.0f;

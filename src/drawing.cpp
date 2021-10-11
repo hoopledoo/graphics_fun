@@ -45,7 +45,7 @@ CrossProduct_3D(Vec3D v1, Vec3D v2)
 }
 
 internal Point_2D_Int
-RotatePoint_2D(Point_2D_Int p, real32 angle, Point_2D_Int o)
+RotatePoint_2D_Int(Point_2D_Int p, real32 angle, Point_2D_Int o)
 {
 	Point_2D_Real newp;
 	real32 s = (real32)sin(angle);
@@ -66,11 +66,10 @@ RotatePoint_2D(Point_2D_Int p, real32 angle, Point_2D_Int o)
 	return p;
 }
 
-internal Point_2D_Int
-RotatePoint_2D(Point_2D_Real p, real32 angle, Point_2D_Real o)
+internal Point_2D_Real
+RotatePoint_2D_Real(Point_2D_Real p, real32 angle, Point_2D_Real o)
 {
-	Point_2D_Real newp;
-	Point_2D_Int rotp;
+	Point_2D_Real newp, rotp;
 	real32 s = (real32)sin(angle);
 	real32 c = (real32)cos(angle);
 
@@ -83,8 +82,8 @@ RotatePoint_2D(Point_2D_Real p, real32 angle, Point_2D_Real o)
 	newp.y = p.x*s + p.y*c;
 
 	// translate the point back out
-	rotp.x = ROUND_INT(newp.x + o.x);
-	rotp.y = ROUND_INT(newp.y + o.x);
+	rotp.x = newp.x + o.x;
+	rotp.y = newp.y + o.y;
 
 	return rotp;
 }
