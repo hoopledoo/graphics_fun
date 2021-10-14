@@ -17,8 +17,9 @@ global_variable real32 xTheta = 1.0f;
 global_variable Vec3D vCamera = {0};
 global_variable unsigned char Rotation = 0x0000;
 
+global_variable real32 fTheta = 0.0f;
 global_variable real32 point_rotTheta = 0.0f;
-global_variable real32 point_rotSpeed = 3.25f;
+global_variable real32 point_rotSpeed = 2.75f;
 global_variable unsigned char rpoint = 0;
 
 global_variable Point_2D_Real SquarePoints[4] = {};
@@ -86,6 +87,25 @@ Init(game_memory *Memory, game_offscreen_buffer *Buffer)
 }
 
 internal void
+GameOutputSound(game_sound_buffer *SoundBuffer, int ToneHz)
+{
+    local_persist real32 tSine;
+    int16_t ToneVolume = 2000;
+    int WavePeriod = SoundBuffer->SamplesPerSecond/ToneHz;
+    int16_t *SampleOut = SoundBuffer->Samples;
+    
+    for(int SampleIndex = 0; SampleIndex < SoundBuffer->SampleCount; ++SampleIndex)
+    {
+        real32 SineValue = sinf(tSine);
+        int16_t SampleValue  = (int16_t)(SineValue * ToneVolume);	
+        *SampleOut++ = SampleValue;
+        *SampleOut++ = SampleValue;
+        
+        tSine += (real32)(2.0f * Pi32 * 1.0f) / (real32)(WavePeriod);
+    }
+}
+
+internal void
 DrawBoxes(game_offscreen_buffer *Buffer)
 {
 	Point_2D_Real a, b, c;
@@ -128,7 +148,6 @@ DrawBoxes(game_offscreen_buffer *Buffer)
 	// and then shift and OR them together	
 }
 
-#if 0
 internal void
 DrawTriangles(game_offscreen_buffer *Buffer)
 {
@@ -221,7 +240,6 @@ DrawTriangles(game_offscreen_buffer *Buffer)
 	p3.x = 501+100*cosf(fTheta); p3.y = 350;
 	FillTriangle_2D(Buffer, p1, p2, p3, WHITE);	
 }
-#endif
 
 internal void
 DrawCube(game_offscreen_buffer *Buffer, uint32_t base_color)
@@ -521,6 +539,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 	}
 
+	fTheta += 1.0f * (delta_time / (1000*1000));
+
+	GameOutputSound(SoundBuffer, 256);
 	DrawRotatingPoints(Buffer, point_rotTheta);
 	//DrawTriangles(Buffer);
 	//DrawCube(Buffer, PURPLE);

@@ -13,6 +13,8 @@ GAME_SLOW:
 1 - slow code allowed
 */
 
+#include <stdint.h>
+
 #define internal static
 #define local_persist static
 #define global_variable static
@@ -99,6 +101,13 @@ struct game_offscreen_buffer
     int Width;
     int Height;
     int Pitch;
+};
+
+struct game_sound_buffer
+{
+    int SamplesPerSecond;
+    int SampleCount;
+    int16_t *Samples;
 };
 
 struct game_memory
@@ -192,7 +201,7 @@ struct game_keyboard_input
     bool32 keys_pressed[NumberOfDefinedKeys];
 };
 
-#define GAME_UPDATE_AND_RENDER(name) void (name)(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input)
+#define GAME_UPDATE_AND_RENDER(name) void (name)(game_memory *Memory, game_offscreen_buffer *Buffer, real32 delta_time, game_keyboard_input *Input, game_sound_buffer *SoundBuffer)
 typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 // Stub, in case GameUpdateAndRender isn't found when we load dynamically
 GAME_UPDATE_AND_RENDER(GameUpdateAndRenderStub)
